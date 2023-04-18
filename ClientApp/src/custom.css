@@ -1,0 +1,19 @@
+﻿@font-face {
+    font-family: Bismarck;
+    src: url("components/Assets/Bismarck.ttf");
+}
+
+@font-face {
+    font-family: Dreamwood;
+    src: url("components/Assets/Dreamwood.ttf");
+}
+
+@font-face {
+    font-family: Vestovia;
+    src: url("components/Assets/Vestovia.otf");
+}
+
+#page-header-text {
+    font-family: Bismarck;
+    font-size: 4rem;
+}
