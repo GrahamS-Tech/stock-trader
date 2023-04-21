@@ -1,23 +1,25 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Header from './components/Header';
-import Navbar from './components/Navbar';
+import Navigation from './components/Navigation';
 import Home from './components/Home';
-import MyAccount from './components/MyAccount';
+import MyPortfolio from './components/MyPortfolio'
 import Reports from './components/Reports';
+import MyAccount from './components/MyAccount';
 
 export default function App() {
     return (
         <div className="container-fluid">
             <header>
                 <Header></Header>
-                <Navbar></Navbar>
+                <Navigation></Navigation>
             </header>
             <main>
                 <Routes>
                     <Route index element={<Home />} />
-                    <Route path="myAccount" element={<MyAccount />} />
-                    <Route path="reports" element={<Reports />} />
+                    <Route path="MyPortfolio" element={<MyPortfolio />} />
+                    <Route path="Reports" element={<Reports />} />
+                    <Route path="MyAccount" element={<MyAccount />} />
                 </Routes>
             </main>
         </div>
