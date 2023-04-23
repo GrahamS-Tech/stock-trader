@@ -6,7 +6,7 @@ export default function MyAccount() {
     return (
         <div className="container-fluid w-50 justify-content-center">
             <br></br>
-            <h1>My Account</h1>
+            <h3>My Account</h3>
             <Form>
                 <div className="row">
                     <div className="col-lg-6">
@@ -70,7 +70,7 @@ export default function MyAccount() {
                     <Button className="m-2" variant="primary" type="submit">Update</Button>
             </Form>
             <br></br>
-            <h1>Banking Detials</h1>
+            <h3>Banking Detials</h3>
             <Table>
                 <thead>
                     <tr>
@@ -91,14 +91,14 @@ export default function MyAccount() {
                 <div className="row">
                     <div className="col-lg-6">
                         <Form.Group className="m-2">
-                    <Form.Label>Account type</Form.Label>
+                            <Form.Label>Account type</Form.Label>
                         <Dropdown>
                             <Dropdown.Toggle variant="secondary">Select</Dropdown.Toggle>
                             <Dropdown.Menu required>
                                 <Dropdown.Item >Checking</Dropdown.Item>
                                 <Dropdown.Item >Savings</Dropdown.Item>
                             </Dropdown.Menu>
-                            </Dropdown>
+                                </Dropdown>
                         </Form.Group>
                     </div>
                     <div className="col-lg-6">
