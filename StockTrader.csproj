@@ -12,25 +12,39 @@
     <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
     <RootNamespace>stock_trader</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>51afcaeb-d075-40bf-b228-0cc9483be670</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Core" Version="1.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="6.0.14" />
-    <PackageReference Include="NHibernate" Version="5.4.2" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.13" />
     <PackageReference Include="NUnit" Version="3.13.3" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Don't publish the SPA source files, but do show them in the project files list -->
+    <Compile Remove="Adapters\**" />
     <Content Remove="$(SpaRoot)**" />
+    <Content Remove="Adapters\**" />
+    <EmbeddedResource Remove="Adapters\**" />
     <None Remove="$(SpaRoot)**" />
+    <None Remove="Adapters\**" />
     <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="package-lock.json.backup" />
+    <None Remove="package.json.backup" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="package-lock.json.backup" />
+    <Content Include="package.json.backup" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="ClientApp\src\components\Assets\" />
-    <Folder Include="Controllers\" />
-    <Folder Include="Pages\" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
