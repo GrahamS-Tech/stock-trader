@@ -1,14 +1,21 @@
 import React, { useState, useRef } from 'react';
+import { Modal, Tabs, Tab, Form, Button, Alert } from 'react-bootstrap';
+import { useNavigate } from "react-router-dom"
+import { Signup } from "../Controllers/ApiCalls";
+import { useAuth } from "./AuthContext";
 import research from "./Assets/Images/chart-on-laptop.jpg";
 import trends from "./Assets/Images/compass.jpg";
 import trade from "./Assets/Images/buysell.jpg";
 import monitor from "./Assets/Images/stock-chart.jpg";
-import { Modal, Tabs, Tab, Form, Button, Alert } from 'react-bootstrap'
 
 export default function Home() {
+    const { GetSalt, Login } = useAuth()
     const [show, setShow] = useState(false)
     const [error, setError] = useState("")
+    const [success, setSuccess] = useState("")
     const [loading, setLoading] = useState(false)
+    const handleClose = () => setShow(false)
+    const handleShow = () => setShow(true)
     const signinEmailRef = useRef()
     const signinPasswordRef = useRef()
     const firstNameRef = useRef()
@@ -16,24 +23,62 @@ export default function Home() {
     const signupEmailRef = useRef()
     const signupPasswordRef = useRef()
     const signupPasswordConfirmRef = useRef()
-    const handleClose = () => setShow(false)
-    const handleShow = () => setShow(true)
+    const navigate = useNavigate()
 
     async function handleLogin(e) {
         e.preventDefault()
+        setError("");
 
         if (signinEmailRef.current.value === "" || signinPasswordRef.current.value === "") {
             return setError("Enter email and password")
         }
 
         try {
-            setError("")
             setLoading(true)
-            await ""
-        } catch {
-            setError("Could not sign in")
+            const getUserSalt = await GetSalt(signinEmailRef.current.value);
+            if (getUserSalt.ok) {
+                const userSalt = await getUserSalt.text();
+                const loginDetails = await Login(signinEmailRef.current.value, signinPasswordRef.current.value, userSalt);
+                if (loginDetails.ok) {
+                    navigate("/MyPortfolio")
+                }
+                else {
+                    const detail = await loginDetails.text();
+                    setError(detail)
+                }
+            }
+            else {
+                setError("Unable to retrieve user salt")
+            }
+        } catch (err) {
+            setError(err)
+        } finally {
+            setLoading(false)
+            if (error) {
+                console.log(error)
+            }
         }
+    }
+
+    async function handleSignup(e) {
+        e.preventDefault()
+        setError("");
+        setSuccess("");
+
+        if (signupPasswordRef.current.value !== signupPasswordConfirmRef.current.value) {
+            return setError("Passwords do not match")
+        }
+
+        try {
+            setLoading(true)
+            var result = await Signup(firstNameRef.current.value, lastNameRef.current.value, signupEmailRef.current.value, signupPasswordRef.current.value)
+            setSuccess(result)
+        } catch {
+            setError(result)
+        }
+
         setLoading(false)
+
     }
 
     return (
@@ -94,6 +139,7 @@ export default function Home() {
             <Modal show={show} onHide={handleClose}>
                 <Modal.Header closeButton>
                     {error && <Alert variant="danger">{error}</Alert>}
+                    {success && <Alert variant="success">{success}</Alert>}
                 </Modal.Header>
                 <Modal.Body>
                     <Tabs defaultActiveKey="login">
@@ -101,38 +147,38 @@ export default function Home() {
                             <Form onSubmit={ handleLogin }>
                                 <Form.Group className="m-3">
                                     <Form.Label>E-mail address</Form.Label>
-                                    <Form.Control type="email" placeholder="Enter email" required ref={ signinEmailRef }></Form.Control>
+                                    <Form.Control type="email" placeholder="Enter email" required ref={signinEmailRef}></Form.Control>
                                 </Form.Group>
                                 <Form.Group className="m-3">
                                     <Form.Label>Password</Form.Label>
-                                    <Form.Control type="password" placeholder="Enter password" required ref={ signinPasswordRef }></Form.Control>
+                                    <Form.Control type="password" placeholder="Enter password" required ref={signinPasswordRef}></Form.Control>
                                 </Form.Group>
-                                <Button diabled={ loading } className="m-3" variant="primary" type="submit">Log in</Button>
+                                <Button disabled={loading} className="m-3" variant="primary" type="submit">Log in</Button>
                             </Form>
                         </Tab>
                         <Tab eventKey="signup" title="Sign up">
-                            <Form>
+                            <Form onSubmit={ handleSignup }>
                                 <Form.Group className="m-3">
                                     <Form.Label>First name</Form.Label>
-                                    <Form.Control type="text" placeholder="Enter first name" required ref={ firstNameRef }></Form.Control>
+                                    <Form.Control type="text" placeholder="Enter first name" required ref={firstNameRef}></Form.Control>
                                 </Form.Group>
                                 <Form.Group className="m-3">
                                     <Form.Label>Last name</Form.Label>
-                                    <Form.Control type="text" placeholder="Enter last name" required ref={ lastNameRef }></Form.Control>
+                                    <Form.Control type="text" placeholder="Enter last name" required ref={lastNameRef}></Form.Control>
                                 </Form.Group>
                                 <Form.Group className="m-3">
                                     <Form.Label>E-mail address</Form.Label>
-                                    <Form.Control type="email" placeholder="Enter email" required ref={ signupEmailRef }></Form.Control>
+                                    <Form.Control type="email" placeholder="Enter email" required ref={signupEmailRef}></Form.Control>
                                 </Form.Group>
                                 <Form.Group className="m-3">
                                     <Form.Label>Password</Form.Label>
-                                    <Form.Control type="password" placeholder="Enter a password" required ref={ signupPasswordRef }></Form.Control>
+                                    <Form.Control type="password" placeholder="Enter a password" required ref={signupPasswordRef}></Form.Control>
                                 </Form.Group>
                                 <Form.Group className="m-3">
                                     <Form.Label>Confirm password</Form.Label>
-                                    <Form.Control type="password" placeholder="Confirm password" required ref={ signupPasswordConfirmRef }></Form.Control>
+                                    <Form.Control type="password" placeholder="Confirm password" required ref={signupPasswordConfirmRef}></Form.Control>
                                 </Form.Group>
-                                <Button className="m-3" variant="primary" type="submit">Submit</Button>
+                                <Button disabled={loading} className="m-3" variant="primary" type="submit">Submit</Button>
                             </Form>
                         </Tab>
                     </Tabs>

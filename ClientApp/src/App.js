@@ -1,27 +1,37 @@
 import React from 'react';
-import { Route, Routes } from 'react-router-dom';
-import Header from './components/Header';
-import Navigation from './components/Navigation';
-import Home from './components/Home';
-import MyPortfolio from './components/MyPortfolio'
-import Reports from './components/Reports';
-import MyAccount from './components/MyAccount';
+import { Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './Components/AuthContext'
+import Header from './Components/Header';
+import Navigation from './Components/Navigation';
+import Home from './Components/Home';
+import MyPortfolio from './Components/MyPortfolio'
+import Reports from './Components/Reports';
+import MyAccount from './Components/MyAccount';
+import PrivateRoute from "./Components/PrivateRoute"
 
 export default function App() {
     return (
         <div className="container-fluid">
-            <header>
-                <Header></Header>
-                <Navigation></Navigation>
-            </header>
-            <main>
-                <Routes>
-                    <Route index element={<Home />} />
-                    <Route path="MyPortfolio" element={<MyPortfolio />} />
-                    <Route path="Reports" element={<Reports />} />
-                    <Route path="MyAccount" element={<MyAccount />} />
-                </Routes>
-            </main>
+            <AuthProvider>
+                <header>
+                    <Header></Header>
+                    <Navigation></Navigation>
+                </header>
+                <main>
+                    <Routes>
+                        <Route index element={<Home/>} />
+                        <Route path="/MyPortfolio" element={<PrivateRoute/>}>
+                            <Route path="/MyPortfolio" element={<MyPortfolio/> }/>
+                        </Route>
+                        <Route path="/Reports" element={<PrivateRoute/>}>
+                            <Route path="/Reports" element={<Reports/>} />
+                        </Route>
+                        <Route path="/MyAccount" element={<PrivateRoute/>}>
+                            <Route path="/MyAccount" element={<MyAccount/>} />
+                        </Route>
+                    </Routes>
+                </main>
+            </AuthProvider>
         </div>
     );
 }

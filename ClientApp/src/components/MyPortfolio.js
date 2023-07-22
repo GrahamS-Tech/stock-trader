@@ -1,14 +1,16 @@
 import React from 'react';
 import { ButtonToolbar, ButtonGroup, Button, Table } from 'react-bootstrap';
 import monitor from "./Assets/Images/stock-chart.jpg";
+import { useAuth } from "./AuthContext";
 
 //View my current holdings
 //Search for new stocks
 
 export default function MyPortfolio() {
+    const { currentUser } = useAuth()
     return (
         < div className="container-fluid w-50 justify-content-center">
-            <h3 className="m-2">$10,857.39</h3>
+            <h3 className="m-2">{currentUser}</h3>
             <h5 className="m-2">+10% Today</h5>
             <div className="d-block justify-content-center">
                 <img className="img-fluid" src={monitor} alt="chart placeholder"></img>

@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StockTrader", "StockTrader.csproj", "{6DBC67B7-71D5-4484-8C98-A60F020F22C0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0F1229F4-E1B9-4C25-A248-EF5D19187D8D} = {0F1229F4-E1B9-4C25-A248-EF5D19187D8D}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StockTraderAPI", "..\stock-trader-api\StockTraderAPI.csproj", "{0F1229F4-E1B9-4C25-A248-EF5D19187D8D}"
 EndProject
