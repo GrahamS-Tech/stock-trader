@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Modal, Tabs, Tab, Form, Button, Alert } from 'react-bootstrap';
 import { useNavigate } from "react-router-dom"
-import { Signup } from "../Controllers/ApiCalls";
+import { Signup } from "../Adapters/Signup";
 import { useAuth } from "./AuthContext";
 import research from "./Assets/Images/chart-on-laptop.jpg";
 import trends from "./Assets/Images/compass.jpg";
@@ -71,10 +71,10 @@ export default function Home() {
 
         try {
             setLoading(true)
-            var result = await Signup(firstNameRef.current.value, lastNameRef.current.value, signupEmailRef.current.value, signupPasswordRef.current.value)
+            const result = await Signup(firstNameRef.current.value, lastNameRef.current.value, signupEmailRef.current.value, signupPasswordRef.current.value)
             setSuccess(result)
-        } catch {
-            setError(result)
+        } catch(err) {
+            setError(err)
         }
 
         setLoading(false)
