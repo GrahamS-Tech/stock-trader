@@ -1,4 +1,4 @@
-﻿import React, { useContext, useState } from 'react'
+﻿import React, { useContext, useState, useEffect } from 'react'
 import bcrypt from 'bcryptjs';
 
 const AuthContext = React.createContext()
@@ -8,6 +8,14 @@ export function useAuth() {
 }
 export function AuthProvider({ children }) {
     const [currentUser, setCurrentUser] = useState()
+
+    useEffect(() => {
+        const cookieValue = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("token="))
+            ?.split("=")[1];
+            if (cookieValue) setCurrentUser(cookieValue)
+    },[])
 
     async function GetSalt(email) {
 
@@ -52,12 +60,11 @@ export function AuthProvider({ children }) {
             })
             if (response.ok) {
                 const data = await response.text()
-                const [userID, token] = data.split(':')
-                setCurrentUser(userID);
+                setCurrentUser(data);
                 const date = new Date();
                 date.setTime(date.getTime() + 1800000);
                 const expires = "expires=" + date.toUTCString();
-                document.cookie = `token=${token}; ${expires}; path=/; secure`;
+                document.cookie = `token=${data}; ${expires}; path=/; secure`;
             }
             return response
         }
