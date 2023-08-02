@@ -33,8 +33,8 @@ export function AuthProvider({ children }) {
                 },
                 body: details
             });
-            const salt = (response)
-            return salt;
+            const result = await response.json();
+            return result;
         }
         catch(err) {
             return(err)
@@ -42,7 +42,6 @@ export function AuthProvider({ children }) {
     };
 
     async function Login(email, password, salt) {
-
         const hashedPassword = bcrypt.hashSync(password, salt);
         const details = JSON.stringify({
             "id": "",
@@ -58,15 +57,15 @@ export function AuthProvider({ children }) {
                 },
                 body: details
             })
-            if (response.ok) {
-                const data = await response.text()
-                setCurrentUser(data);
+            const result = await response.json();
+            if (result.Status === "success") {
+                setCurrentUser(result.Data);
                 const date = new Date();
                 date.setTime(date.getTime() + 1800000);
                 const expires = "expires=" + date.toUTCString();
-                document.cookie = `token=${data}; ${expires}; path=/; secure`;
+                document.cookie = `token=${result.Data}; ${expires}; path=/; secure`;
             }
-            return response
+            return result
         }
         catch (err) {
            console.error(err)

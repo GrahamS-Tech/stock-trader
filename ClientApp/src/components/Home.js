@@ -25,8 +25,10 @@ export default function Home() {
     const signupPasswordConfirmRef = useRef()
     const navigate = useNavigate()
 
+
     async function handleLogin(e) {
         e.preventDefault()
+        setLoading(true)
         setError("");
 
         if (signinEmailRef.current.value === "" || signinPasswordRef.current.value === "") {
@@ -34,29 +36,24 @@ export default function Home() {
         }
 
         try {
-            setLoading(true)
             const getUserSalt = await GetSalt(signinEmailRef.current.value);
-            if (getUserSalt.ok) {
-                const userSalt = await getUserSalt.text();
+            if (getUserSalt.Status === "success") {
+                const userSalt = getUserSalt.Data;
                 const loginDetails = await Login(signinEmailRef.current.value, signinPasswordRef.current.value, userSalt);
-                if (loginDetails.ok) {
+                if (loginDetails.Status === "success") {
                     navigate("/MyPortfolio")
                 }
                 else {
-                    const detail = await loginDetails.text();
-                    setError(detail)
+                    setError(loginDetails.Message)
                 }
             }
             else {
-                setError("Unable to retrieve user salt")
+                setError(getUserSalt.Message)
             }
         } catch (err) {
             setError(err)
         } finally {
             setLoading(false)
-            if (error) {
-                console.log(error)
-            }
         }
     }
 
@@ -65,20 +62,25 @@ export default function Home() {
         setError("");
         setSuccess("");
 
-        if (signupPasswordRef.current.value !== signupPasswordConfirmRef.current.value) {
+        if (signupPasswordRef.current.value !== signupPasswordConfirmRef.current.value)
+        {
             return setError("Passwords do not match")
         }
-
         try {
             setLoading(true)
             const result = await Signup(firstNameRef.current.value, lastNameRef.current.value, signupEmailRef.current.value, signupPasswordRef.current.value)
-            setSuccess(result)
-        } catch(err) {
-            setError(err)
-        }
-
+            if (result.Status === "success") {
+                setSuccess("Account created successfully. Return to log in to access your account")
+            }
+            else {
+                setError(result.Message)
+            }
+        } catch (err) {
+            console.error(err)
+            setError("Unalbe to create your account. Please try again later")
+        } finally {
         setLoading(false)
-
+        }
     }
 
     return (
@@ -138,8 +140,10 @@ export default function Home() {
             </div>
             <Modal show={show} onHide={handleClose}>
                 <Modal.Header closeButton>
-                    {error && <Alert variant="danger">{error}</Alert>}
-                    {success && <Alert variant="success">{success}</Alert>}
+                    <div className="container-fluid justify-content-center">
+                        {error && <Alert variant="danger">{error}</Alert>}
+                        {success && <Alert variant="success">{success}</Alert>}
+                    </div>
                 </Modal.Header>
                 <Modal.Body>
                     <Tabs defaultActiveKey="login">
