@@ -9,8 +9,8 @@ export async function getProfileData(currentUser) {
                 "Authorization": "Bearer " + currentUser
             }
         });
-        const details = await response.json();
-        return details
+        const result = await response.json();
+        return result
     } catch(err) {
         console.error(err)
     }
@@ -26,7 +26,8 @@ export async function profileUpdate(currentUser, details) {
             },
             body: details
         });
-        return response
+        const result = await response.json();
+        return result
     } catch (err) {
         console.error(err)
     }
