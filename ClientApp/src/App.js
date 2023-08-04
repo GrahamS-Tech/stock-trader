@@ -3,10 +3,10 @@ import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './Components/AuthContext'
 import Header from './Components/Header';
 import Navigation from './Components/Navigation';
-import Home from './Components/Home';
-import MyPortfolio from './Components/MyPortfolio'
-import Reports from './Components/Reports';
-import MyAccount from './Components/MyAccount';
+import Home from './Pages/Home';
+import MyPortfolio from './Pages/MyPortfolio'
+import Reports from './Pages/Reports';
+import MyAccount from './Pages/MyAccount';
 import PrivateRoute from "./Components/PrivateRoute"
 
 export default function App() {

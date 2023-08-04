@@ -2,11 +2,11 @@ import React, { useState, useRef } from 'react';
 import { Modal, Tabs, Tab, Form, Button, Alert } from 'react-bootstrap';
 import { useNavigate } from "react-router-dom"
 import { Signup } from "../Adapters/Signup";
-import { useAuth } from "./AuthContext";
-import research from "./Assets/Images/chart-on-laptop.jpg";
-import trends from "./Assets/Images/compass.jpg";
-import trade from "./Assets/Images/buysell.jpg";
-import monitor from "./Assets/Images/stock-chart.jpg";
+import { useAuth } from "../Components/AuthContext";
+import research from "../Components/Assets/Images/chart-on-laptop.jpg";
+import trends from "../Components/Assets/Images/compass.jpg";
+import trade from "../Components/Assets/Images/buysell.jpg";
+import monitor from "../Components/Assets/Images/stock-chart.jpg";
 
 export default function Home() {
     const { GetSalt, Login } = useAuth()
