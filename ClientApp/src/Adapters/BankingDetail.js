@@ -32,7 +32,6 @@ export async function addAccount(currentUser, newAccountDetails) {
 }
 
 export async function deactivateAccount(currentUser, Id) {
-    console.log(Id)
     try {
         const response = await fetch("https://localhost:7247/api/BankingDetail/DeactivateAccount", {
             method: "PUT",
