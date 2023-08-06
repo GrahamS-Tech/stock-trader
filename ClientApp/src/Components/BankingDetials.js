@@ -60,7 +60,8 @@ export default function BankingDetails() {
 
     async function handleAddAccount(e) {
         e.preventDefault();
-
+        setError("")
+        setSuccess("")
         if (accountNumberRef.current.value !== confirmaccountNumberRef.current.value) {
             setError("Account numbers do not match")
             return
@@ -91,6 +92,8 @@ export default function BankingDetails() {
 
     async function handleAccountDelete(e) {
         e.preventDefault();
+        setError("")
+        setSuccess("")
         const details = Number(e.target.id)
         try {
             const response = await deactivateAccount(currentUser, details)
@@ -127,7 +130,7 @@ export default function BankingDetails() {
                         <th>Account type</th>
                         <th>Account number</th>
                         <th>Routing number</th>
-                        <th>Remove Account</th>
+                        <th className="text-center">Remove Account</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -138,12 +141,13 @@ export default function BankingDetails() {
                             <td>{accounts.AccountNumber}</td>
                             <td>{accounts.RoutingNumber}</td>
                             <td className="text-center">
-                                <button
+                                <Button
                                     id={accounts.Id}
                                     onClick={handleAccountDelete}
-                                    className="btn btn-sm btn-danger">
+                                    className="btn btn-sm btn-danger"
+                                    size="sm">
                                     X
-                                </button>
+                                </Button>
                             </td>
                         </tr>
 
