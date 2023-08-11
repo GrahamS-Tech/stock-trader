@@ -1,4 +1,4 @@
-﻿import React, { useRef, useState, useEffect } from "react";
+﻿import React, { useRef, useState, useEffect, useCallback } from "react";
 import { Form, Button, Table, Alert } from 'react-bootstrap';
 import { useAuth } from "./AuthContext";
 import { getAllAccounts, addAccount, deactivateAccount } from '../Adapters/BankingDetail';
@@ -14,7 +14,7 @@ export default function BankingDetails() {
     let confirmaccountNumberRef = useRef()
     let routingNumberRef = useRef()
 
-    async function loadAccounts() {
+    const loadAccounts = useCallback(async() => { 
         setError("")
         setLoading(true)
         getAllAccounts(currentUser)
@@ -34,29 +34,11 @@ export default function BankingDetails() {
             .finally(() => {
                 setLoading(false)
             });
-    }
+    },[])
 
     useEffect(() => {
-        setError("")
-        setLoading(true)
-        getAllAccounts(currentUser)
-            .then((response) => {
-                if (response.Status === "success") {
-                    setUserBankAccounts(response.Data)
-                }
-                else {
-                    console.error(response.Message)
-                    setError("Unable to load account details")
-                }
-            })
-            .catch((err) => {
-                console.error(err)
-                setError("Unable to load account details")
-            })
-            .finally(() => {
-                setLoading(false)
-            });
-    }, [currentUser])
+        loadAccounts()
+    }, [loadAccounts])
 
     async function handleAddAccount(e) {
         e.preventDefault();
@@ -99,7 +81,7 @@ export default function BankingDetails() {
             const response = await deactivateAccount(currentUser, details)
             if (response.Status === "success") {
                 setSuccess("Account removed successfully");
-                setUserBankAccounts(userBankAccounts.filter(account => account.Id !== details));
+                loadAccounts();
             }
             else {
                 console.error(response.Message)

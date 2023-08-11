@@ -1,12 +1,12 @@
-﻿export async function addWatchListItem(currentUser, newWatchListItem) {
+﻿export async function addHolding(currentUser, newHolding) {
     try {
-        const response = await fetch("https://localhost:7247/api/WatchList/AddWatchListEntry", {
+        const response = await fetch("https://localhost:7247/api/Holding/AddHolding", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + currentUser
             },
-            body: newWatchListItem
+            body: newHolding
         });
         const result = await response.json();
         return result
@@ -15,9 +15,9 @@
     }
 }
 
-export async function getAllWatchListItems(currentUser) {
+export async function getAllHoldings(currentUser) {
     try {
-        const response = await fetch("https://localhost:7247/api/WatchList/GetWatchListEntries", {
+        const response = await fetch("https://localhost:7247/api/Holding/GetAllHoldings", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -31,9 +31,9 @@ export async function getAllWatchListItems(currentUser) {
     }
 }
 
-export async function deactivateWatchListItem(currentUser, Id) {
-    try { 
-        const response = await fetch("https://localhost:7247/api/WatchList/DeactivateWatchListEntry", {
+export async function updateHolding(currentUser, Id) {
+    try {
+        const response = await fetch("https://localhost:7247/api/Holding/DeactivateHolding", {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

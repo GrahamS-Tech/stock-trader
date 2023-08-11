@@ -1,11 +1,7 @@
 import React from 'react';
-
 import PortfolioChart from '../Components/PortfolioChart';
 import PortfolioTable from '../Components/PortfolioTable';
 import WatchListTable from '../Components/WatchListTable';
-
-//View my current holdings
-//Search for new stocks
 
 export default function MyPortfolio() {
     return (

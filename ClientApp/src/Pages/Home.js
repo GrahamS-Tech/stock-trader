@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Modal, Tabs, Tab, Form, Button, Alert } from 'react-bootstrap';
+import { Modal, Tabs, Tab, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { useNavigate } from "react-router-dom"
 import { Signup } from "../Adapters/Signup";
 import { useAuth } from "../Components/AuthContext";
@@ -135,7 +135,7 @@ export default function Home() {
                     </div>
                 </div>
                 <div className="container-fluid w-50 justify-content-center">
-                    <p className="text-center my-3"><button type="button" className="btn btn-link" onClick={handleShow}>Login/Sign-up</button></p>
+                    <p className="text-center my-3"><button type="button" className="btn btn-primary" onClick={handleShow}>Login/Sign-up</button></p>
                 </div>
             </div>
             <Modal show={show} onHide={handleClose}>
@@ -157,7 +157,7 @@ export default function Home() {
                                     <Form.Label>Password</Form.Label>
                                     <Form.Control type="password" placeholder="Enter password" required ref={signinPasswordRef}></Form.Control>
                                 </Form.Group>
-                                <Button disabled={loading} className="m-3" variant="primary" type="submit">Log in</Button>
+                                <Button disabled={loading} className="m-3" variant="primary" type="submit">{ loading? <Spinner size="sm"></Spinner> : "Log in"}</Button>
                             </Form>
                         </Tab>
                         <Tab eventKey="signup" title="Sign up">
