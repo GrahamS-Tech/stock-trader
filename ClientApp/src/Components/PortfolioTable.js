@@ -3,6 +3,7 @@ import { Table, Button, Alert } from 'react-bootstrap';
 import { getAllHoldings } from "../Adapters/Holding"
 import { getLastClose } from "../Adapters/StockData"
 import { useAuth } from "./AuthContext"
+import { formatCurrency } from "../Adapters/StringToCurrency"
 
 export default function PortfolioTable() {
     const { currentUser } = useAuth()
@@ -15,20 +16,19 @@ export default function PortfolioTable() {
         setLoading(true)
         try {
             const response = await getAllHoldings(currentUser)
-            //let holdingsWithPrice = "";
             if (response.Status === "success" && response.Data != null) {
                 try {
-                    const holdingsWithPrice = await Promise.all(response.Data.map(async (i) => {
+                    await Promise.all(response.Data.map(async (i) => {
                         const closePrice = await getLastClose(i.Ticker)
-                        console.log(closePrice)
-                        Object.assign(i, { Price: closePrice })
+                        const formattedPrice = formatCurrency(closePrice)
+                        Object.assign(i, { Price: formattedPrice })
+                        const value = closePrice * i.Shares;
+                        const formattedValue = formatCurrency(value)
+                        Object.assign(i, {Value: formattedValue})
                     }));
-                    console.log(holdingsWithPrice)
+                    setHoldings(response.Data)
                 } catch (err) {
                     console.error(err)
-                } finally {
-                //setHoldings(holdingsWithPrice)
-                console.log("Line afer setState")
                 }
             }
             else {
@@ -40,8 +40,6 @@ export default function PortfolioTable() {
             setError("Unable to load holdings")
         } finally {
             setLoading(false)
-            console.log(holdings)
-            console.log("finally...")
         }
     }, [])
 
@@ -81,7 +79,7 @@ export default function PortfolioTable() {
                             <td>{items.Name}</td>
                             <td>{items.Price ? items.Price : "Loading..."}</td>
                             <td className="text-center">{ items.Shares }</td>
-                            <td className="text-center">{items.Price? items.Price * items.Shares : "Loading..."}</td>
+                            <td className="text-center">{items.Value? items.Value : "Loading..."}</td>
                             <td className="text-center"><Button id={items.Id} variant="success" size="sm">Trade</Button></td>
                         </tr>
                     ))}

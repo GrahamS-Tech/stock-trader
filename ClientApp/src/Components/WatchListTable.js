@@ -5,6 +5,7 @@ import { getAllWatchListItems, deactivateWatchListItem } from "../Adapters/Watch
 import TradeSharesModal from "./TradeSharesModal";
 import SearchModal from "./SearchModal";
 import { getLastClose } from "../Adapters/StockData";
+import { formatCurrency } from "../Adapters/StringToCurrency"
 
 
 export default function WatchListTable() {
@@ -30,8 +31,17 @@ export default function WatchListTable() {
         setLoading(true)
         try {
             const response = await getAllWatchListItems(currentUser)
-            if (response.Status === "success") {
-                setWatchList(response.Data)
+            if (response.Status === "success" && response.Data != null) {
+                try {
+                    await Promise.all(response.Data.map(async (i) => {
+                        const closePrice = await getLastClose(i.Ticker)
+                        const formattedPrice = formatCurrency(closePrice)
+                        Object.assign(i, { Price: formattedPrice })
+                    }));
+                    setWatchList(response.Data)
+                } catch (err) {
+                    console.error(err)
+                }
             }
             else {
                 console.error(response.Message)
@@ -43,39 +53,11 @@ export default function WatchListTable() {
         } finally {
             setLoading(false)
         }
-
-        //await loadPriceData();
-
     }, [])
-
-    const loadPriceData = useCallback(async () => {
-                const watchListWithPrice = watchList
-                if (watchListWithPrice) {
-                    watchListWithPrice.map(async (i) => {
-                        try {
-                            const closePrice = await getLastClose(i.Ticker)
-                            Object.assign(i, { Price: closePrice })
-                        } catch (err) {
-                            console.error(err)
-                            setError("Unable to load price information")
-                        }
-                    });
-                    setWatchList(watchListWithPrice)
-                    console.log(watchList)
-                }
-            else {
-                setError("Unable to load price information")
-            }
-    }, [])
-
-    const refreshWatchList = useCallback(async () => {
-        loadWatchList();
-        loadPriceData();
-    }, [loadWatchList]);
 
     useEffect(() => {
-        refreshWatchList();
-    }, []);
+        loadWatchList();
+    }, [loadWatchList]);
 
     async function handleRemove(e) {
         e.preventDefault();
@@ -95,7 +77,7 @@ export default function WatchListTable() {
             console.error(err)
             setError("Unable to remove item from your watch list")
         } finally {
-            refreshWatchList();
+            loadWatchList();
         }
     };
 
