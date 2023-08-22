@@ -1,15 +1,24 @@
 ﻿import React, { useState, useEffect, useCallback } from "react";
 import { Table, Button, Alert } from 'react-bootstrap';
-import { getAllHoldings } from "../Adapters/Holding"
-import { getLastClose } from "../Adapters/StockData"
-import { useAuth } from "./AuthContext"
-import { formatCurrency } from "../Adapters/StringToCurrency"
+import { getAllHoldings } from "../Adapters/Holding";
+import { getLastClose } from "../Adapters/StockData";
+import { useAuth } from "./AuthContext";
+import { formatCurrency } from "../Adapters/StringToCurrency";
+import TradeSharesModal from "./TradeSharesModal";
 
 export default function PortfolioTable() {
     const { currentUser } = useAuth()
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
-    const [holdings, setHoldings] = useState([])
+    const [holdings, setHoldings] = useState([]);
+    const [showTradeModal, setShowTradeModal] = useState(false);
+    const [sharesToTrade, setSharesToTrade] = useState("");
+    const handleCloseTradeModal = () => (setShowTradeModal(false));
+
+    function handleShowTradeModal(e) {
+        setSharesToTrade(e.target.attributes.ticker.value)
+        setShowTradeModal(true)
+    };
 
     const loadHoldings = useCallback(async () => {
         setError("")
@@ -24,11 +33,13 @@ export default function PortfolioTable() {
                         Object.assign(i, { Price: formattedPrice })
                         const value = closePrice * i.Shares;
                         const formattedValue = formatCurrency(value)
-                        Object.assign(i, {Value: formattedValue})
-                    }));
-                    setHoldings(response.Data)
+                        Object.assign(i, { Value: formattedValue })
+                    }));                    
                 } catch (err) {
                     console.error(err)
+                    setError("Unable to load price data")
+                } finally {
+                    setHoldings(response.Data)
                 }
             }
             else {
@@ -80,7 +91,7 @@ export default function PortfolioTable() {
                             <td>{items.Price ? items.Price : "Loading..."}</td>
                             <td className="text-center">{ items.Shares }</td>
                             <td className="text-center">{items.Value? items.Value : "Loading..."}</td>
-                            <td className="text-center"><Button id={items.Id} variant="success" size="sm">Trade</Button></td>
+                            <td className="text-center"><Button ticker={items.Ticker} id={items.Id} variant="success" size="sm" onClick={handleShowTradeModal}>Trade</Button></td>
                         </tr>
                     ))}
                     <tr>
@@ -88,6 +99,7 @@ export default function PortfolioTable() {
                     </tr>
                 </tbody>
             </Table>
+            <TradeSharesModal currentUser={currentUser} selectedTicker={sharesToTrade} isModalOpen={showTradeModal} openTradeModal={handleShowTradeModal} closeTradeModal={handleCloseTradeModal}></TradeSharesModal>
         </>
 )
 }

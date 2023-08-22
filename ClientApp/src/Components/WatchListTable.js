@@ -17,10 +17,14 @@ export default function WatchListTable() {
     const [watchList, setWatchList] = useState([]);
     const [showTradeModal, setShowTradeModal] = useState(false);
     const [sharesToTrade, setSharesToTrade] = useState("");
-
-    const handleCloseSearchModal = () => (setShowSearchModal(false));
     const handleShowSearchModal = () => (setShowSearchModal(true));
     const handleCloseTradeModal = () => (setShowTradeModal(false));
+
+    function handleCloseSearchModal() {
+        setShowSearchModal(false)
+        loadWatchList();
+    };
+
     function handleShowTradeModal(e) {
         setSharesToTrade(e.target.attributes.ticker.value)
         setShowTradeModal(true)
@@ -37,10 +41,12 @@ export default function WatchListTable() {
                         const closePrice = await getLastClose(i.Ticker)
                         const formattedPrice = formatCurrency(closePrice)
                         Object.assign(i, { Price: formattedPrice })
-                    }));
-                    setWatchList(response.Data)
+                    }));                    
                 } catch (err) {
                     console.error(err)
+                    setError("Unable to load price data")
+                } finally {
+                    setWatchList(response.Data)
                 }
             }
             else {

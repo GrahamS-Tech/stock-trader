@@ -1,5 +1,5 @@
 ﻿export async function getLastClose(ticker) {
-    const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${ticker}&apikey=4UH2KHBG4WO9LP5E`
+    const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${ticker}&apikey=CBVMME6BACI5A2Y6`
     try {
         const response = await fetch(url, {
             headers: {
