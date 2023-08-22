@@ -34,18 +34,29 @@ export default function SearchModal(props) {
 
     async function handleChange(e) {
 
-        const url = `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${e.target.value}&apikey={apiKey}`
+        let debounceTimer;
 
-        try {
-            const response = await fetch(url, {
-                headers: {
-                    "User-Agent": "request"
+        if (e.target.value) {
+
+            const url = `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${e.target.value}&apikey={apiKey}`
+
+            clearTimeout(debounceTimer)
+
+            debounceTimer = setTimeout(async() => {
+                try {
+                    const response = await fetch(url, {
+                        headers: {
+                            "User-Agent": "request"
+                        }
+                    });
+                    const result = await response.json();
+                    await setSearchResult(result.bestMatches)
+                    console.log(url)
+                    console.log(result.bestMatches)
+                } catch (err) {
+                    console.error(err)
                 }
-            });
-            const result = await response.json();
-            await setSearchResult(result.bestMatches)
-        } catch (err) {
-            console.error(err)
+            }, 300);
         }
     }
 
@@ -66,7 +77,7 @@ export default function SearchModal(props) {
                 <Form.Control type="text" onChange={handleChange}></Form.Control>
                 <Form.Text>Seach by company name or ticker symbol</Form.Text>
                 <ListGroup>
-                    {searchResult.length && searchResult.map((result) => (
+                    {(searchResult && searchResult.length) && searchResult.map((result) => (
                         <ListGroup.Item onClick={handleAdd} id={result['1. symbol']}>{result['1. symbol']} : {result['2. name']}</ListGroup.Item>
                     ))}
                 </ListGroup>

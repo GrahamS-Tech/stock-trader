@@ -61,7 +61,7 @@ export function AuthProvider({ children }) {
             if (result.Status === "success") {
                 setCurrentUser(result.Data);
                 const date = new Date();
-                date.setTime(date.getTime() + 1800000);
+                date.setTime(date.getTime() + 900000);
                 const expires = "expires=" + date.toUTCString();
                 document.cookie = `token=${result.Data}; ${expires}; path=/; secure`;
             }
