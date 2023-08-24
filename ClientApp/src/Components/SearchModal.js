@@ -20,8 +20,7 @@ export default function SearchModal(props) {
             const response = await addWatchListItem(props.currentUser, details)
             if (response.Status === "success") {
                 setSuccess(`${entry['1. symbol']} has been added to your watch list`);
-            }
-            else {
+            } else {
                 console.error(response.Message)
                 setError("Unable to add item to your watch list")
             }

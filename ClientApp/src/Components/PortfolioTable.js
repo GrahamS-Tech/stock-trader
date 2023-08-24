@@ -13,10 +13,16 @@ export default function PortfolioTable() {
     const [holdings, setHoldings] = useState([]);
     const [showTradeModal, setShowTradeModal] = useState(false);
     const [sharesToTrade, setSharesToTrade] = useState("");
-    const handleCloseTradeModal = () => (setShowTradeModal(false));
+    const [shareName, setShareName] = useState("");
+
+    function handleCloseTradeModal() {
+        setShowTradeModal(false);
+        loadHoldings();
+    } 
 
     function handleShowTradeModal(e) {
         setSharesToTrade(e.target.attributes.ticker.value)
+        setShareName(e.target.attributes.shareName.value)
         setShowTradeModal(true)
     };
 
@@ -91,7 +97,7 @@ export default function PortfolioTable() {
                             <td>{items.Price ? items.Price : "Loading..."}</td>
                             <td className="text-center">{ items.Shares }</td>
                             <td className="text-center">{items.Value? items.Value : "Loading..."}</td>
-                            <td className="text-center"><Button ticker={items.Ticker} id={items.Id} variant="success" size="sm" onClick={handleShowTradeModal}>Trade</Button></td>
+                            <td className="text-center"><Button shareName={ items.Name}  ticker={items.Ticker} id={items.Id} variant="success" size="sm" onClick={handleShowTradeModal}>Trade</Button></td>
                         </tr>
                     ))}
                     <tr>
@@ -99,7 +105,7 @@ export default function PortfolioTable() {
                     </tr>
                 </tbody>
             </Table>
-            <TradeSharesModal currentUser={currentUser} selectedTicker={sharesToTrade} isModalOpen={showTradeModal} openTradeModal={handleShowTradeModal} closeTradeModal={handleCloseTradeModal}></TradeSharesModal>
+            <TradeSharesModal currentUser={currentUser} selectedName={shareName} selectedTicker={sharesToTrade} isModalOpen={showTradeModal} openTradeModal={handleShowTradeModal} closeTradeModal={handleCloseTradeModal}></TradeSharesModal>
         </>
 )
 }

@@ -17,6 +17,7 @@ export default function WatchListTable() {
     const [watchList, setWatchList] = useState([]);
     const [showTradeModal, setShowTradeModal] = useState(false);
     const [sharesToTrade, setSharesToTrade] = useState("");
+    const [shareName, setShareName] = useState("");
     const handleShowSearchModal = () => (setShowSearchModal(true));
     const handleCloseTradeModal = () => (setShowTradeModal(false));
 
@@ -27,6 +28,7 @@ export default function WatchListTable() {
 
     function handleShowTradeModal(e) {
         setSharesToTrade(e.target.attributes.ticker.value)
+        setShareName(e.target.attributes.shareName.value)
         setShowTradeModal(true)
     };
 
@@ -119,7 +121,7 @@ export default function WatchListTable() {
                                 <td>{ items.Name }</td>
                                 <td>{ items.Price ? items.Price : "Loading..." }</td>
                                 <td className="text-center">
-                                    <Button ticker={items.Ticker} id={items.Id} variant="success" size="sm" onClick={handleShowTradeModal}>Trade</Button>
+                                    <Button shareName={ items.Name} ticker={items.Ticker} id={items.Id} variant="success" size="sm" onClick={handleShowTradeModal}>Trade</Button>
                                 </td>
                                 <td className="text-center">
                                     <Button id={items.Id} variant="danger" size="sm" onClick={handleRemove}>X</Button>
@@ -133,7 +135,7 @@ export default function WatchListTable() {
             </Table>
             </div>
             <SearchModal currentUser={currentUser} isModalOpen={showSearchModal} openSearchModal={handleShowSearchModal} closeSearchModal={handleCloseSearchModal}></SearchModal>            
-            <TradeSharesModal currentUser={currentUser} selectedTicker={sharesToTrade} isModalOpen={showTradeModal} openTradeModal={handleShowTradeModal} closeTradeModal={handleCloseTradeModal}></TradeSharesModal>
+            <TradeSharesModal currentUser={currentUser} selectedName={shareName} selectedTicker={sharesToTrade} isModalOpen={showTradeModal} openTradeModal={handleShowTradeModal} closeTradeModal={handleCloseTradeModal}></TradeSharesModal>
         </>
 )
 }
