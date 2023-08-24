@@ -7,7 +7,7 @@ import { formatCurrency } from "../Adapters/StringToCurrency";
 import TradeSharesModal from "./TradeSharesModal";
 
 export default function PortfolioTable() {
-    const { currentUser } = useAuth()
+    const { currentUser } = useAuth();
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
     const [holdings, setHoldings] = useState([]);
@@ -22,7 +22,7 @@ export default function PortfolioTable() {
 
     function handleShowTradeModal(e) {
         setSharesToTrade(e.target.attributes.ticker.value)
-        setShareName(e.target.attributes.shareName.value)
+        setShareName(e.target.attributes.sharename.value)
         setShowTradeModal(true)
     };
 
@@ -97,7 +97,7 @@ export default function PortfolioTable() {
                             <td>{items.Price ? items.Price : "Loading..."}</td>
                             <td className="text-center">{ items.Shares }</td>
                             <td className="text-center">{items.Value? items.Value : "Loading..."}</td>
-                            <td className="text-center"><Button shareName={ items.Name}  ticker={items.Ticker} id={items.Id} variant="success" size="sm" onClick={handleShowTradeModal}>Trade</Button></td>
+                            <td className="text-center"><Button sharename={ items.Name}  ticker={items.Ticker} id={items.Id} variant="success" size="sm" onClick={handleShowTradeModal}>Trade</Button></td>
                         </tr>
                     ))}
                     <tr>

@@ -50,8 +50,6 @@ export default function SearchModal(props) {
                     });
                     const result = await response.json();
                     await setSearchResult(result.bestMatches)
-                    console.log(url)
-                    console.log(result.bestMatches)
                 } catch (err) {
                     console.error(err)
                 }
