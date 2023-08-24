@@ -37,7 +37,7 @@ export default function SearchModal(props) {
 
         if (e.target.value) {
 
-            const url = `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${e.target.value}&apikey=4UH2KHBG4WO9LP5E`
+            const url = `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${e.target.value}&apikey=CBVMME6BACI5A2Y6`
 
             clearTimeout(debounceTimer)
 
@@ -50,8 +50,6 @@ export default function SearchModal(props) {
                     });
                     const result = await response.json();
                     await setSearchResult(result.bestMatches)
-                    console.log(url)
-                    console.log(result.bestMatches)
                 } catch (err) {
                     console.error(err)
                 }
