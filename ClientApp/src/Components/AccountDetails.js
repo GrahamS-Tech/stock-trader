@@ -1,5 +1,5 @@
 ﻿import React, { useRef, useState, useEffect } from "react";
-import { Form, Button, Alert } from 'react-bootstrap';
+import { Form, Button, Alert, Row, Col } from 'react-bootstrap';
 import { useAuth } from "./AuthContext";
 import { getProfileData, profileUpdate } from '../Adapters/Profile';
 import state_data from '../Components/Assets/state_data.json';
@@ -94,62 +94,46 @@ export default function AccountDetails() {
             </Alert>}
             <br></br>
                 <h3>My Account</h3>
-                <Form onSubmit={handleUpdate} >
-                    <div className="row">
-                        <div className="col-lg-6">
-                            <Form.Group className="m-2">
+                <Form className="m-3" onSubmit={handleUpdate} >
+                    <Row className="mb-2">
+                        <Form.Group as={Col}>
                                 <Form.Label>First name</Form.Label>
                                 <Form.Control type="text" placeholder="Enter first name" ref={ firstNameRef } defaultValue={currentUserProfile?.FirstName} required></Form.Control>
-                            </Form.Group>
-                        </div>
-                        <div className="col-lg-6">
-                            <Form.Group className="m-2">
+                        </Form.Group>
+                        <Form.Group as={Col}>
                                 <Form.Label>Last name</Form.Label>
                                 <Form.Control type="text" placeholder="Enter last name" ref={ lastNameRef } defaultValue={currentUserProfile?.LastName} required></Form.Control>
-                            </Form.Group>
-                        </div>
-                    </div>
-                    <div className="row">
-                        <Form.Group className="m-2">
-                            <Form.Label>E-mail address</Form.Label>
-                            <Form.Control type="email" placeholder="Enter email" ref={ emailAddressRef } defaultValue={currentUserProfile?.EmailAddress} required></Form.Control>
                         </Form.Group>
-                    </div>
-                    <div className="row">
-                        <Form.Group className="m-2">
-                            <Form.Label>Address 1</Form.Label>
-                            <Form.Control type="text" placeholder="Enter address" ref={ address1Ref } defaultValue={currentUserProfile?.Address1} required></Form.Control>
+                    </Row>
+                    <Form.Group className="mb-2">
+                        <Form.Label>E-mail address</Form.Label>
+                        <Form.Control type="email" placeholder="Enter email" ref={emailAddressRef} defaultValue={currentUserProfile?.EmailAddress} required></Form.Control>
+                    </Form.Group>
+                    <Form.Group className="mb-2">
+                        <Form.Label>Address 1</Form.Label>
+                        <Form.Control type="text" placeholder="Enter address" ref={ address1Ref } defaultValue={currentUserProfile?.Address1} required></Form.Control>
+                    </Form.Group>
+                    <Form.Group className="mb-2">
+                        <Form.Label>Address 2</Form.Label>
+                        <Form.Control type="text" placeholder="Enter address" ref={ address2Ref } defaultValue={currentUserProfile?.Address2}></Form.Control>
+                    </Form.Group>
+                    <Row className="mb-2">
+                        <Form.Group as={Col}>
+                            <Form.Label>City</Form.Label>
+                            <Form.Control type="text" placeholder="Enter city" ref={ cityRef } defaultValue={currentUserProfile?.City}></Form.Control>
                         </Form.Group>
-                    </div>
-                    <div className="row">
-                        <Form.Group className="m-2">
-                            <Form.Label>Address 2</Form.Label>
-                            <Form.Control type="text" placeholder="Enter address" ref={ address2Ref } defaultValue={currentUserProfile?.Address2}></Form.Control>
+                        <Form.Group as={Col}>
+                            <Form.Label>State</Form.Label>
+                            <Form.Select ref={stateRef} defaultValue={currentUserProfile?.State}>
+                                {state_data.map((states) => (
+                                    <option key={states.code} value={states.code}>{ states.state }</option>))}
+                            </Form.Select>
                         </Form.Group>
-                    </div>
-                    <div className="row">
-                        <div className="col-lg-4">
-                            <Form.Group className="m-2">
-                                <Form.Label>City</Form.Label>
-                                <Form.Control type="text" placeholder="Enter city" ref={ cityRef } defaultValue={currentUserProfile?.City}></Form.Control>
-                            </Form.Group>
-                        </div>
-                        <div className="col-lg-4">
-                            <Form.Group className="m-2">
-                                <Form.Label>State</Form.Label>
-                                <Form.Select ref={stateRef} defaultValue={currentUserProfile?.State}>
-                                    {state_data.map((states) => (
-                                        <option key={states.code} value={states.code}>{ states.state }</option>))}
-                                </Form.Select>
-                            </Form.Group>
-                        </div>
-                        <div className="col-lg-4">
-                            <Form.Group className="m-2">
-                                <Form.Label>Postal code</Form.Label>
-                                <Form.Control type="text" placeholder="Enter postal code" ref={ postalCodeRef } defaultValue={currentUserProfile?.PostalCode}></Form.Control>
-                            </Form.Group>
-                        </div>
-                    </div>
+                        <Form.Group as={Col}>
+                            <Form.Label>Postal code</Form.Label>
+                            <Form.Control type="text" placeholder="Enter postal code" ref={ postalCodeRef } defaultValue={currentUserProfile?.PostalCode}></Form.Control>
+                        </Form.Group>
+                    </Row>
                 <Button className="m-2" variant="primary" type="submit">Update</Button>
             </Form>
         </div>
