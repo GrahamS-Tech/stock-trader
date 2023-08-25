@@ -1,18 +1,22 @@
 ﻿import React, { useRef, useState, useEffect, useCallback } from "react";
-import { Form, Button, Table, Alert } from 'react-bootstrap';
+import { Form, ButtonGroup, Button, Table, Alert, Row, Col } from 'react-bootstrap';
 import { useAuth } from "./AuthContext";
 import { getAllAccounts, addAccount, deactivateAccount } from '../Adapters/BankingDetail';
 
 export default function BankingDetails() {
-    const [userBankAccounts, setUserBankAccounts] = useState([])
-    const { currentUser } = useAuth()
-    const [success, setSuccess] = useState("")
+    const [userBankAccounts, setUserBankAccounts] = useState([]);
+    const { currentUser } = useAuth();
+    const [success, setSuccess] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
-    let accountTypeRef = useRef()
-    let accountNumberRef = useRef()
-    let confirmaccountNumberRef = useRef()
-    let routingNumberRef = useRef()
+    const [depositOrWithdraw, setDepositOrWithdraw] = useState("");
+    let accountTypeRef = useRef();
+    let accountNumberRef = useRef();
+    let confirmaccountNumberRef = useRef();
+    let routingNumberRef = useRef();
+    let accountNameRef = useRef();
+    let transferAccountRef = useRef();
+    let transferAmountRef = useRef();
 
     const loadAccounts = useCallback(async() => { 
         setError("")
@@ -94,6 +98,19 @@ export default function BankingDetails() {
         }
     }
 
+    async function moveFunds(e) {
+        e.preventDefault();
+        if (!depositOrWithdraw) {
+            setError("Deposit or withdraw?")
+            return
+        }
+    }
+
+    function handleDepositWithdrawChange(e) {
+        if (error === "Deposit or withdraw?") setError("");
+        setDepositOrWithdraw(e.target.value)
+    }
+
     if (loading) return (
         <div className="container-fluid w-50 justify-content-center">
             <Alert variant="primary" className="text-center">Getting account details...</Alert>
@@ -102,17 +119,40 @@ export default function BankingDetails() {
 
     return (
         <div>
+            <h3>Transfer Funds</h3>
+            <h4 className="ms-3">$5,187.39</h4>
+            <Form className="m-3" onSubmit={moveFunds}>
+                <ButtonGroup className="mb-2" onClick={handleDepositWithdrawChange}>
+                    <Button name="group1" variant={depositOrWithdraw === "Deposit" ? "primary" : "secondary"} value="Deposit">Deposit</Button>
+                    <Button name="group1" variant={depositOrWithdraw === "Withdraw" ? "primary" : "secondary"} value="Withdraw">Withdraw</Button>
+                </ButtonGroup>
+                <Row className="mb-2">
+                    <Form.Group as={Col}>
+                        <Form.Label>Select account</Form.Label>
+                        <Form.Select ref={transferAccountRef} required>
+                            {userBankAccounts && userBankAccounts.map((accounts) => (
+                                <option key={accounts.AccountNumber} value={accounts.AccountNumber}>{accounts.AccountName} - {accounts.AccountNumber}</option>))}
+                        </Form.Select>
+                    </Form.Group>
+                    <Form.Group as={Col}>
+                        <Form.Label>Amount to transfer</Form.Label>
+                        <Form.Control ref={transferAmountRef} required type="number" step={0.01}></Form.Control>
+                        </Form.Group>
+                </Row>
+                <Button className="m-2" type="submit" variant="primary">Transfer</Button>
+            </Form>
+            <br></br>
             {success && <Alert variant="success" className="text-center">{success}</Alert>}
             {error && <Alert variant="danger" className="text-center">{error}</Alert>}
-            <br></br>
             <h3>Banking Detials</h3>
-            <Table>
+            <Table classname="m-3">
                 <thead>
                     <tr>
                         <th>Account type</th>
+                        <th>Account name</th>
                         <th>Account number</th>
                         <th>Routing number</th>
-                        <th className="text-center">Remove Account</th>
+                        <th className="text-center">Remove account</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -120,6 +160,7 @@ export default function BankingDetails() {
                     {userBankAccounts && userBankAccounts.map((accounts) => (
                         <tr key={accounts.Id}>
                             <td>{accounts.AccountType}</td>
+                            <td>{accounts.AccountName}</td>
                             <td>{accounts.AccountNumber}</td>
                             <td>{accounts.RoutingNumber}</td>
                             <td className="text-center">
@@ -138,39 +179,38 @@ export default function BankingDetails() {
             </Table>
             <br></br>
             <h3>Add account</h3>
-            <Form onSubmit={handleAddAccount}>
-                <div className="row">
-                    <div className="col-lg-6">
-                        <Form.Group className="m-2">
-                            <Form.Label>Account type</Form.Label>
-                            <Form.Select ref={accountTypeRef} required>
-                                <option>Select...</option>
-                                <option>Checking</option>
-                                <option>Savings</option>
-                            </Form.Select>
-                        </Form.Group>
-                    </div>
-                    <div className="col-lg-6">
-                        <Form.Group className="m-2">
-                            <Form.Label>Routing number</Form.Label>
-                            <Form.Control ref={routingNumberRef} type="text" placeholder="Enter routing number" required></Form.Control>
-                        </Form.Group>
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col-lg-6">
-                        <Form.Group className="m-2">
+            <Form className="m-3" onSubmit={handleAddAccount}>
+                <Row className="mb-2">
+                    <Form.Group as={Col}>
+                        <Form.Label>Account type</Form.Label>
+                        <Form.Select ref={accountTypeRef} required>
+                            <option>Select...</option>
+                            <option>Checking</option>
+                            <option>Savings</option>
+                        </Form.Select>
+                    </Form.Group>
+                    <Form.Group as={Col}>
+                        <Form.Label>Routing number</Form.Label>
+                        <Form.Control ref={routingNumberRef} type="text" placeholder="Enter routing number" required></Form.Control>
+                    </Form.Group>
+                </Row>
+                <Row className="mb-2">
+                    <Form.Group as={Col}>
+                        <Form.Label>Account name</Form.Label>
+                        <Form.Control ref={ accountNameRef } type="text" placeholder="Enter a name for account" required></Form.Control>
+                    </Form.Group>
+                </Row>
+                <Row className="mb-2">
+                        <Form.Group as={Col}>
                             <Form.Label>Account number</Form.Label>
                             <Form.Control ref={accountNumberRef} type="text" placeholder="Enter account number" required></Form.Control>
                         </Form.Group>
-                    </div>
-                    <div className="col-lg-6">
-                        <Form.Group className="m-2">
+                        <Form.Group as={Col}>
                             <Form.Label>Confirm account number</Form.Label>
                             <Form.Control ref={confirmaccountNumberRef} type="text" placeholder="Re-enter account number" required></Form.Control>
                         </Form.Group>
-                    </div>
-                </div>
+
+                </Row>
                 <Button className="m-2" variant="primary" type="submit">Add</Button>
             </Form>
         </div>
