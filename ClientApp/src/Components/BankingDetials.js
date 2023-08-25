@@ -2,6 +2,9 @@
 import { Form, ButtonGroup, Button, Table, Alert, Row, Col } from 'react-bootstrap';
 import { useAuth } from "./AuthContext";
 import { getAllAccounts, addAccount, deactivateAccount } from '../Adapters/BankingDetail';
+import { addFiatTransaction } from '../Adapters/FiatTransaction'
+import { getFiatBalanceByCurrency } from '../Adapters/FiatHolding'
+import { formatCurrency } from '../Adapters/StringToCurrency'
 
 export default function BankingDetails() {
     const [userBankAccounts, setUserBankAccounts] = useState([]);
@@ -10,6 +13,7 @@ export default function BankingDetails() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
     const [depositOrWithdraw, setDepositOrWithdraw] = useState("");
+    const [currentFiatBalance, setCurrentFiatBalance] = useState("$0.00");
     let accountTypeRef = useRef();
     let accountNumberRef = useRef();
     let confirmaccountNumberRef = useRef();
@@ -38,11 +42,30 @@ export default function BankingDetails() {
             .finally(() => {
                 setLoading(false)
             });
-    },[])
+    }, [])
+
+    const getFiatBalance = useCallback(async () => {
+        getFiatBalanceByCurrency(currentUser, "USD")
+            .then((response) => {
+                if (response.Status === "success") {
+                    const formattedCurrency = formatCurrency(response.Data);
+                    setCurrentFiatBalance(formattedCurrency)
+                }
+                else {
+                    console.error(response.Message)
+                    setError("Unable to retrieve balance")
+                }
+            })
+            .catch((err) => {
+                console.error(err)
+                setError("Unable to retrieve balance")
+            });
+    }, [])
 
     useEffect(() => {
-        loadAccounts()
-    }, [loadAccounts])
+        loadAccounts();
+        getFiatBalance();
+    }, [loadAccounts, getFiatBalance])
 
     async function handleAddAccount(e) {
         e.preventDefault();
@@ -55,6 +78,7 @@ export default function BankingDetails() {
 
         const details = JSON.stringify({
             "AccountType": accountTypeRef.current.value,
+            "AccountName": accountNameRef.current.value,
             "AccountNumber": accountNumberRef.current.value,
             "RoutingNumber": routingNumberRef.current.value
         });
@@ -104,6 +128,28 @@ export default function BankingDetails() {
             setError("Deposit or withdraw?")
             return
         }
+
+        const details = JSON.stringify({
+            "Currency": "USD",
+            "Value": transferAmountRef.current.value,
+            "TransactionType": depositOrWithdraw,
+            "AccountNumber": transferAccountRef.current.value
+        })
+        console.log(transferAccountRef.current.value)
+
+        try {
+            const response = await addFiatTransaction(currentUser, details)
+            if (response.Status === "success") {
+                setSuccess("Transaction successfully submitted")
+            }
+            else {
+                console.error(response.Message)
+                setError("Unable to complete transaction")
+            }
+        } catch (err) {
+            console.error(err)
+            setError("Unable to complete transaction")
+        } 
     }
 
     function handleDepositWithdrawChange(e) {
@@ -120,7 +166,7 @@ export default function BankingDetails() {
     return (
         <div>
             <h3>Transfer Funds</h3>
-            <h4 className="ms-3">$5,187.39</h4>
+            <h4 className="ms-3">{ currentFiatBalance? currentFiatBalance : "Unable to load balance" }</h4>
             <Form className="m-3" onSubmit={moveFunds}>
                 <ButtonGroup className="mb-2" onClick={handleDepositWithdrawChange}>
                     <Button name="group1" variant={depositOrWithdraw === "Deposit" ? "primary" : "secondary"} value="Deposit">Deposit</Button>
@@ -156,7 +202,7 @@ export default function BankingDetails() {
                     </tr>
                 </thead>
                 <tbody>
-                    {!userBankAccounts.length && <tr><td className="text-center" colSpan={4}>No accounts have been added</td></tr>}
+                    {!userBankAccounts.length && <tr><td className="text-center" colSpan={5}>No accounts have been added</td></tr>}
                     {userBankAccounts && userBankAccounts.map((accounts) => (
                         <tr key={accounts.Id}>
                             <td>{accounts.AccountType}</td>
@@ -197,7 +243,7 @@ export default function BankingDetails() {
                 <Row className="mb-2">
                     <Form.Group as={Col}>
                         <Form.Label>Account name</Form.Label>
-                        <Form.Control ref={ accountNameRef } type="text" placeholder="Enter a name for account" required></Form.Control>
+                        <Form.Control ref={accountNameRef} type="text" placeholder="Enter a name for account" required></Form.Control>
                     </Form.Group>
                 </Row>
                 <Row className="mb-2">
