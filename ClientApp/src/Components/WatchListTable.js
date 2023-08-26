@@ -4,7 +4,7 @@ import { useAuth } from "./AuthContext";
 import { getAllWatchListItems, deactivateWatchListItem } from "../Adapters/WatchList";
 import TradeSharesModal from "./TradeSharesModal";
 import SearchModal from "./SearchModal";
-import { getLastClose } from "../Adapters/StockData";
+import { getCurrenPrice } from "../Adapters/StockData";
 import { formatCurrency } from "../Adapters/StringToCurrency"
 
 
@@ -40,8 +40,8 @@ export default function WatchListTable() {
             if (response.Status === "success" && response.Data != null) {
                 try {
                     await Promise.all(response.Data.map(async (i) => {
-                        const closePrice = await getLastClose(i.Ticker)
-                        const formattedPrice = formatCurrency(closePrice)
+                        const currentPrice = await getCurrenPrice(i.Ticker)
+                        const formattedPrice = formatCurrency(currentPrice)
                         Object.assign(i, { Price: formattedPrice })
                     }));                    
                 } catch (err) {
