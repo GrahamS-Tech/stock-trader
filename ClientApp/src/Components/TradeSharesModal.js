@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Modal, Alert, ButtonGroup, Button, Form } from "react-bootstrap";
-import { getLastClose } from "../Adapters/StockData";
+import { getCurrenPrice } from "../Adapters/StockData";
 import { formatCurrency } from "../Adapters/StringToCurrency"
 import { useAuth } from "./AuthContext";
 import { addTransaction } from "../Adapters/Transaction"
@@ -18,9 +18,9 @@ export default function TradeSharesModal(props) {
 
     const getPrice = useCallback(async() => {
         try {
-            const lastClose = await getLastClose(props.selectedTicker)
-            setMarketPrice(lastClose);
-            setFormattedMarketPrice(formatCurrency(lastClose));
+            const currentPrice = await getCurrenPrice(props.selectedTicker)
+            setMarketPrice(currentPrice);
+            setFormattedMarketPrice(formatCurrency(currentPrice));
         } catch (err) {
             setError("Can't get price. Try again later")
             console.error(err)
@@ -86,8 +86,6 @@ export default function TradeSharesModal(props) {
             setEstimatedCost(formatCurrency(marketPrice * sharesRef.current.value))
         }
     }
-
-
 
     return (
         <>

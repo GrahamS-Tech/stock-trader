@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect, useCallback } from "react";
 import { Table, Button, Alert } from 'react-bootstrap';
 import { getAllHoldings } from "../Adapters/Holding";
-import { getLastClose } from "../Adapters/StockData";
+import { getCurrenPrice } from "../Adapters/StockData";
 import { useAuth } from "./AuthContext";
 import { formatCurrency } from "../Adapters/StringToCurrency";
 import TradeSharesModal from "./TradeSharesModal";
@@ -34,10 +34,10 @@ export default function PortfolioTable() {
             if (response.Status === "success" && response.Data != null) {
                 try {
                     await Promise.all(response.Data.map(async (i) => {
-                        const closePrice = await getLastClose(i.Ticker)
-                        const formattedPrice = formatCurrency(closePrice)
+                        const currentPrice = await getCurrenPrice(i.Ticker)
+                        const formattedPrice = formatCurrency(currentPrice)
                         Object.assign(i, { Price: formattedPrice })
-                        const value = closePrice * i.Shares;
+                        const value = currentPrice * i.Shares;
                         const formattedValue = formatCurrency(value)
                         Object.assign(i, { Value: formattedValue })
                     }));                    
@@ -100,9 +100,9 @@ export default function PortfolioTable() {
                             <td className="text-center"><Button sharename={ items.Name}  ticker={items.Ticker} id={items.Id} variant="success" size="sm" onClick={handleShowTradeModal}>Trade</Button></td>
                         </tr>
                     ))}
-                    <tr>
-                        <td className="text-center" colSpan={6}><Button variant="success">Buy</Button></td>
-                    </tr>
+                    {/*<tr>*/}
+                    {/*    <td className="text-center" colSpan={6}><Button variant="success">Buy</Button></td>*/}
+                    {/*</tr>*/}
                 </tbody>
             </Table>
             <TradeSharesModal currentUser={currentUser} selectedName={shareName} selectedTicker={sharesToTrade} isModalOpen={showTradeModal} openTradeModal={handleShowTradeModal} closeTradeModal={handleCloseTradeModal}></TradeSharesModal>
