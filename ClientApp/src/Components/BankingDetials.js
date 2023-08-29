@@ -191,7 +191,7 @@ export default function BankingDetails() {
             {success && <Alert variant="success" className="text-center">{success}</Alert>}
             {error && <Alert variant="danger" className="text-center">{error}</Alert>}
             <h3>Banking Detials</h3>
-            <Table classname="m-3">
+            <Table className="m-3">
                 <thead>
                     <tr>
                         <th>Account type</th>

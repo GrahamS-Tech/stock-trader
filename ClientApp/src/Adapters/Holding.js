@@ -15,9 +15,9 @@
     }
 }
 
-export async function getAllHoldings(currentUser) {
+export async function getAllHoldings(currentUser, excludeZero) {
     try {
-        const response = await fetch("https://localhost:7247/api/Holding/GetAllHoldings", {
+        const response = await fetch("https://localhost:7247/api/Holding/GetAllHoldings/?excludeZero=" + excludeZero, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
