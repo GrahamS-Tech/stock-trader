@@ -15,7 +15,6 @@ export async function getCurrenPrice(ticker) {
 
     if (localStorage.getItem("CurrentPrice-" + ticker)) {
         result = JSON.parse(localStorage.getItem("CurrentPrice-" + ticker))
-        console.log(result)
         const expireTime = new Date(result['Global Quote - DATA DELAYED BY 15 MINUTES']['Expiration'])
         timeDiff = (expireTime - utcDate)/60000
     }
@@ -46,6 +45,7 @@ export async function getCurrenPrice(ticker) {
 }
 
 export async function getDailyPriceHistory(ticker) {
+    console.log("Get price history is running")
     const now = new Date();
     const utcTime = now.getTime();
     const utcDate = new Date(utcTime);
