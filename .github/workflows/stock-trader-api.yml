@@ -16,7 +16,7 @@ env:
   API_IMPORT_SPECIFICATION_PATH: .\publish\swagger.json
   API_IMPORT_DLL: .\bin\Release\net6.0\StockTraderAPI.dll
   API_IMPORT_VERSION: v1
-  CONFIGURATION: Release
+  CONFIGURATION: Development
   DOTNET_CORE_VERSION: 6.0.x
   WORKING_DIRECTORY: .
 jobs:
