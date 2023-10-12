@@ -1,6 +1,6 @@
 ﻿export async function addHolding(currentUser, newHolding) {
     try {
-        const response = await fetch("https://localhost:7247/api/Holding/AddHolding", {
+        const response = await fetch("https://stock-trader-api.azurewebsites.net/api/Holding/AddHolding", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -17,7 +17,7 @@
 
 export async function getAllHoldings(currentUser, excludeZero) {
     try {
-        const response = await fetch("https://localhost:7247/api/Holding/GetAllHoldings/?excludeZero=" + excludeZero, {
+        const response = await fetch("https://stock-trader-api.azurewebsites.net/api/Holding/GetAllHoldings/?excludeZero=" + excludeZero, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -33,7 +33,7 @@ export async function getAllHoldings(currentUser, excludeZero) {
 
 export async function updateHolding(currentUser, Id) {
     try {
-        const response = await fetch("https://localhost:7247/api/Holding/DeactivateHolding", {
+        const response = await fetch("https://stock-trader-api.azurewebsites.net/api/Holding/DeactivateHolding", {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

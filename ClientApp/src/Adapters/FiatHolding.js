@@ -1,6 +1,6 @@
 ﻿export async function getFiatBalanceByCurrency(currentUser, currency) {
     try {
-        const response = await fetch("https://localhost:7247/api/FiatHolding/" + currency, {
+        const response = await fetch("https://stock-trader-api.azurewebsites.net/api/FiatHolding/" + currency, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",

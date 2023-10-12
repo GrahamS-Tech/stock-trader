@@ -2,7 +2,7 @@
 export async function getProfileData(currentUser) {
 
     try {
-        const response = await fetch("https://localhost:7247/api/Profile/ProfileDetails", {
+        const response = await fetch("https://stock-trader-api.azurewebsites.net/api/Profile/ProfileDetails", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -18,7 +18,7 @@ export async function getProfileData(currentUser) {
 
 export async function profileUpdate(currentUser, details) {
     try {
-        const response = await fetch("https://localhost:7247/api/Profile/ProfileUpdate", {
+        const response = await fetch("https://stock-trader-api.azurewebsites.net/api/Profile/ProfileUpdate", {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
