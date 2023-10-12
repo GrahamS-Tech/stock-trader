@@ -1,6 +1,6 @@
 ﻿export async function addFiatTransaction(currentUser, details) {
     try {
-        const response = await fetch("https://localhost:7247/api/FiatTransaction/AddFiatTransaction", {
+        const response = await fetch("https://stock-trader-api.azurewebsites.net/api/FiatTransaction/AddFiatTransaction", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

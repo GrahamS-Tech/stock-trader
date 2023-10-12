@@ -1,6 +1,6 @@
 ﻿export async function getAllAccounts(currentUser) {
     try {
-        const response = await fetch("https://localhost:7247/api/BankingDetail/GetAllAccounts", {
+        const response = await fetch("https://stock-trader-api.azurewebsites.net/api/BankingDetail/GetAllAccounts", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -16,7 +16,7 @@
 
 export async function addAccount(currentUser, newAccountDetails) {
     try {
-        const response = await fetch("https://localhost:7247/api/BankingDetail/AddAccount", {
+        const response = await fetch("https://stock-trader-api.azurewebsites.net/api/BankingDetail/AddAccount", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -33,7 +33,7 @@ export async function addAccount(currentUser, newAccountDetails) {
 
 export async function deactivateAccount(currentUser, Id) {
     try {
-        const response = await fetch("https://localhost:7247/api/BankingDetail/DeactivateAccount", {
+        const response = await fetch("https://stock-trader-api.azurewebsites.net/api/BankingDetail/DeactivateAccount", {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

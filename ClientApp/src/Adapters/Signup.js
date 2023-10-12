@@ -8,7 +8,7 @@
     })
 
     try {
-        const response = await fetch("https://localhost:7247/api/Signup", {
+        const response = await fetch("https://stock-trader-api.azurewebsites.net/api/Signup", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

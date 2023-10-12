@@ -1,6 +1,6 @@
 ﻿export async function addWatchListItem(currentUser, newWatchListItem) {
     try {
-        const response = await fetch("https://localhost:7247/api/WatchList/AddWatchListEntry", {
+        const response = await fetch("https://stock-trader-api.azurewebsites.net/api/WatchList/AddWatchListEntry", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -17,7 +17,7 @@
 
 export async function getAllWatchListItems(currentUser) {
     try {
-        const response = await fetch("https://localhost:7247/api/WatchList/GetWatchListEntries", {
+        const response = await fetch("https://stock-trader-api.azurewebsites.net/api/WatchList/GetWatchListEntries", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -33,7 +33,7 @@ export async function getAllWatchListItems(currentUser) {
 
 export async function deactivateWatchListItem(currentUser, Id) {
     try { 
-        const response = await fetch("https://localhost:7247/api/WatchList/DeactivateWatchListEntry", {
+        const response = await fetch("https://stock-trader-api.azurewebsites.net/api/WatchList/DeactivateWatchListEntry", {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

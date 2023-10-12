@@ -1,6 +1,6 @@
 ﻿export async function addTransaction(currentUser, details) {
     try {
-        const response = await fetch("https://localhost:7247/api/Transaction/AddTransaction", {
+        const response = await fetch("https://stock-trader-api.azurewebsites.net/api/Transaction/AddTransaction", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
