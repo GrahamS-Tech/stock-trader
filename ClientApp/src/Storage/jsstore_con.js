@@ -13,11 +13,8 @@ function getDbSchema() {
     const tblPrice = {
         name: "CurrentPrice-v1",
         columns: {
-            id: {
-                primaryKey: true,
-                autoIncrement: true
-            },
             ticker: {
+                primaryKey: true,
                 dataType: "string"
             },
             open: {
@@ -55,11 +52,8 @@ function getDbSchema() {
     const tblDailyHistory = {
         name: "DailyPriceHistory-v1",
         columns: {
-            id: {
-                primaryKey: true,
-                autoIncrement: true
-            },
             ticker: {
+                primaryKey: true,
                 dataType: 'string'
             },
             data_as_of: {

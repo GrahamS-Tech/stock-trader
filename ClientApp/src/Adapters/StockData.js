@@ -25,22 +25,16 @@ export async function getCurrenPrice(currentUser, requestedTicker) {
         }
     });
 
-    if (localData.length != 0) {
+    if (localData.length !== 0) {
         timeDiff = (localData[0].data_expiration - utcDate) / 60000
         if (timeDiff < 0) {
-            await dataCache.remove({
-                from: "CurrentPrice-v1",
-                where: {
-                    ticker: requestedTicker
-                }
-            });
             refreshData = true
         }
-    }
-    else {
-        refreshData = false
-        result.Status = "success"
-        result.Data = localData[0].price
+        else {
+            refreshData = false
+            result.Status = "success"
+            result.Data = localData[0].price
+        }
     }
     if (refreshData) {
         try {
@@ -79,6 +73,7 @@ export async function getCurrenPrice(currentUser, requestedTicker) {
 
         await dataCache.insert({
             into: "CurrentPrice-v1",
+            upsert: true,
             values: [newStockData]
         })
 
@@ -108,7 +103,7 @@ export async function getDailyPriceHistory(currentUser, requestedTicker) {
         }
     });
 
-    if (localData.length != 0) {
+    if (localData.length !== 0) {
         //need to loop through each entry in existing data and delete anything that is expired
         timeDiff = (localData[0].data_expiration - utcDate) / 60000
         if (timeDiff < 0) {
