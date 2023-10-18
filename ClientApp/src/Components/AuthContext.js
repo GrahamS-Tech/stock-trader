@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
         })
 
         try {
-            const response = await fetch("https://localhost:7247/api/Login", {
+            const response = await fetch("https://stock-trader-api.azurewebsites.net/api/Login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -50,7 +50,7 @@ export function AuthProvider({ children }) {
         })
 
         try {
-            const response = await fetch("https://localhost:7247/api/Login", {
+            const response = await fetch("https://stock-trader-api.azurewebsites.net/api/Login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
