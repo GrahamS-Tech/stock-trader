@@ -40,7 +40,7 @@ export default function WatchListTable() {
             if (response.Status === "success" && response.Data != null) {
                 try {
                     await Promise.all(response.Data.map(async (i) => {
-                        const currentPrice = await getCurrenPrice(i.Ticker)
+                        const currentPrice = await getCurrenPrice(currentUser, i.Ticker)
                         const formattedPrice = formatCurrency(currentPrice)
                         Object.assign(i, { Price: formattedPrice })
                     }));                    

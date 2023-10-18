@@ -21,7 +21,7 @@ export default function MyPortfolio() {
             if (response.Status === "success" && response.Data != null) {
                 try {
                     await Promise.all(response.Data.map(async (i) => {
-                        const currentPrice = await getCurrenPrice(i.Ticker)
+                        const currentPrice = await getCurrenPrice(currentUser, i.Ticker)
                         const formattedPrice = formatCurrency(currentPrice)
                         Object.assign(i, { Price: formattedPrice })
                         const value = currentPrice * i.Shares;
@@ -53,7 +53,7 @@ export default function MyPortfolio() {
 
     return (
         < div className="container-fluid w-50 justify-content-center">
-            <PortfolioChart holdings={holdings}></PortfolioChart>
+            {/*<PortfolioChart holdings={holdings}></PortfolioChart>*/}
             <hr></hr>
             <PortfolioTable holdings={holdings} error={error} loading={loading} loadHoldings={loadHoldings}></PortfolioTable>
             <hr></hr>
