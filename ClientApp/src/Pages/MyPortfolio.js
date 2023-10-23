@@ -53,7 +53,7 @@ export default function MyPortfolio() {
 
     return (
         < div className="container-fluid w-50 justify-content-center">
-            {/*<PortfolioChart holdings={holdings}></PortfolioChart>*/}
+            <PortfolioChart holdings={holdings}></PortfolioChart>
             <hr></hr>
             <PortfolioTable holdings={holdings} error={error} loading={loading} loadHoldings={loadHoldings}></PortfolioTable>
             <hr></hr>
