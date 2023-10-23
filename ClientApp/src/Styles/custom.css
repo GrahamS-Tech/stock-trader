@@ -1,0 +1,9 @@
+﻿@font-face {
+    font-family: Bismarck;
+    src: url("../Components/Assets/Bismarck.ttf");
+}
+
+#page-header-text {
+    font-family: Bismarck;
+    font-size: 4rem;
+}

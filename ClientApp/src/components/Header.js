@@ -1,6 +1,6 @@
 import React from 'react';
 import logo from './Assets/Images/6423145.png'
-import "../custom.css"
+import "../Styles/custom.css"
 
 export default function Header() {
     return (

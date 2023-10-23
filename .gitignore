@@ -181,6 +181,7 @@ ClientBin/
 orleans.codegen.cs
 Misc/
 /node_modules
+*.backup
 
 # RIA/Silverlight projects
 Generated_Code/
