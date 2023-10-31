@@ -1,12 +1,14 @@
 import * as JsStore from "jsstore";
 import workerInjector from "jsstore/dist/worker_injector"
 
-export async function initDb() {
+async function initDb() {
     const connection = new JsStore.Connection();
     connection.addPlugin(workerInjector);
     await connection.initDb(getDbSchema());
     return connection
 }
+
+export const cache = initDb();
 
 function getDbSchema() {
     //create tables for current price & daily price history
@@ -49,15 +51,41 @@ function getDbSchema() {
             }
         }
     }
+
+    const tblTransactionHistory = {
+        name: "TransactionHistory-v1",
+        columns: {
+            transaction_id: {
+                primaryKey: true,
+                dataType: "number"
+            },
+            ticker: {
+                dataType: "string"
+            },
+            shares: {
+                dataType: "number"
+            },
+            market_value: {
+                dataType: "number"
+            },
+            transaction_type: {
+                dataType: "string"
+            },
+            transaction_date: {
+                dataType: "date_time"
+            }
+        }
+    }
+
     const tblDailyHistory = {
         name: "DailyPriceHistory-v1",
         columns: {
-            ticker: {
+            ticker_time_block: {
                 primaryKey: true,
-                dataType: 'string'
+                dataType: "string"
             },
-            data_as_of: {
-                dataType: "date_time"
+            ticker: {
+                dataType: 'string'
             },
             open: {
                 dataType: "number"
@@ -74,15 +102,24 @@ function getDbSchema() {
             volume: {
                 dataType: "number"
             },
+            time_block: {
+                dataType: "date_time"
+            },
+            data_pulled: {
+                dataType: "date_time"
+            },
             data_expiration: {
                 dataType: "date_time"
+            },
+            data_source: {
+                dataType: "string"
             }
         }
     }
 
     const db = {
         name: "StockDataCache",
-        tables: [tblPrice, tblDailyHistory]
+        tables: [tblPrice, tblTransactionHistory, tblDailyHistory]
     }
 
     return db;

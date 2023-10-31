@@ -24,13 +24,13 @@ export default function WatchListTable() {
     function handleCloseSearchModal() {
         setShowSearchModal(false)
         loadWatchList();
-    };
+    }
 
     function handleShowTradeModal(e) {
         setSharesToTrade(e.target.attributes.ticker.value)
         setShareName(e.target.attributes.shareName.value)
         setShowTradeModal(true)
-    };
+    }
 
     const loadWatchList = useCallback(async () => {
         setError("")
@@ -43,7 +43,7 @@ export default function WatchListTable() {
                         const currentPrice = await getCurrenPrice(currentUser, i.Ticker)
                         const formattedPrice = formatCurrency(currentPrice)
                         Object.assign(i, { Price: formattedPrice })
-                    }));                    
+                    }));
                 } catch (err) {
                     console.error(err)
                     setError("Unable to load price data")
@@ -134,7 +134,7 @@ export default function WatchListTable() {
                 </tbody>
             </Table>
             </div>
-            <SearchModal currentUser={currentUser} isModalOpen={showSearchModal} openSearchModal={handleShowSearchModal} closeSearchModal={handleCloseSearchModal}></SearchModal>            
+            <SearchModal currentUser={currentUser} isModalOpen={showSearchModal} openSearchModal={handleShowSearchModal} closeSearchModal={handleCloseSearchModal}></SearchModal>
             <TradeSharesModal currentUser={currentUser} selectedName={shareName} selectedTicker={sharesToTrade} isModalOpen={showTradeModal} openTradeModal={handleShowTradeModal} closeTradeModal={handleCloseTradeModal}></TradeSharesModal>
         </>
 )

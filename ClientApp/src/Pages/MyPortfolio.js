@@ -13,11 +13,11 @@ export default function MyPortfolio() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
 
-    const loadHoldings = useCallback(async (excludeZero) => {
+    const loadHoldings = useCallback(async() => {
         setError("")
         setLoading(true)
         try {
-            const response = await getAllHoldings(currentUser, excludeZero)
+            const response = await getAllHoldings(currentUser, false)
             if (response.Status === "success" && response.Data != null) {
                 try {
                     await Promise.all(response.Data.map(async (i) => {
@@ -48,12 +48,12 @@ export default function MyPortfolio() {
     }, [])
 
     useEffect(() => {
-        loadHoldings(false)
+        loadHoldings()
     }, [loadHoldings])
 
     return (
         < div className="container-fluid w-50 justify-content-center">
-            <PortfolioChart holdings={holdings}></PortfolioChart>
+            <PortfolioChart holdings={holdings} loading={loading}></PortfolioChart>
             <hr></hr>
             <PortfolioTable holdings={holdings} error={error} loading={loading} loadHoldings={loadHoldings}></PortfolioTable>
             <hr></hr>

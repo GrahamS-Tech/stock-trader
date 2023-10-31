@@ -13,6 +13,7 @@
     "jquery": "^3.6.0",
     "jsstore": "^4.6.4",
     "merge": "^2.1.1",
+    "moment-timezone": "^0.5.43",
     "oidc-client": "^1.11.5",
     "os-browserify": "^0.3.0",
     "react": "^18.2.0",

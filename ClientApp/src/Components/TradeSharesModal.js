@@ -18,7 +18,7 @@ export default function TradeSharesModal(props) {
 
     const getPrice = useCallback(async() => {
         try {
-            const currentPrice = await getCurrenPrice(props.selectedTicker)
+            const currentPrice = await getCurrenPrice(currentUser, props.selectedTicker)
             setMarketPrice(currentPrice);
             setFormattedMarketPrice(formatCurrency(currentPrice));
         } catch (err) {
@@ -28,13 +28,13 @@ export default function TradeSharesModal(props) {
     }, [props.selectedTicker])
 
     useEffect(() => {
-        if (props.isModalOpen) { 
+        if (props.isModalOpen) {
             getPrice();
         }
     },[props.isModalOpen])
 
     function handleBuySellChange(e) {
-        if (error === "Buy or sell?") setError(""); 
+        if (error === "Buy or sell?") setError("");
         setBuyOrSell(e.target.value)
     }
 
@@ -74,7 +74,6 @@ export default function TradeSharesModal(props) {
                 console.error(response.Message)
                 setError("Unable to complete transaction")
             }
-            return
         } catch (err) {
             console.error(err)
             setError("Unable to complete transaction")
