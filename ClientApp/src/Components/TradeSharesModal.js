@@ -72,7 +72,7 @@ export default function TradeSharesModal(props) {
                 setSuccess(`${sharesRef.current.value} share(s) of ${props.selectedTicker} has successfully been ${transactionType}`)
             } else {
                 console.error(response.Message)
-                setError("Unable to complete transaction")
+                setError(response.Message)
             }
         } catch (err) {
             console.error(err)
