@@ -114,7 +114,7 @@ export async function refreshDailyPriceHistory(currentUser, requestedTickers) {
         const localData = await dataCache.select({
             from: "DailyPriceHistory-v1",
             order: {
-                by:"time_block",
+                by:"data_pulled",
                 type: "desc"
             },
             where: {
@@ -122,36 +122,17 @@ export async function refreshDailyPriceHistory(currentUser, requestedTickers) {
             }
         });
 
-        //TODO: <------------refactor this logic to only set refreshData to false------------->
         let refreshData = true;
         let localDataKeys = Object.keys(localData);
         let currentEasternTime = moment.tz("America/New_York")
-        if (localDataKeys.length !== 0) { //1.
+        if (localDataKeys.length !== 0) {
             console.log(`${requestedTicker} - Local data is present. ${localDataKeys.length} entries found.`)
-            //TODO: Change newestTimeBlock to data_pulled, converted to eastern. Data will always refresh on the weekend since no new data will be stored...
-            let newestTimeBlock = moment(localData[0]["time_block"].toString()).tz("America/New_York")
-            if (marketStatusCheck(currentEasternTime) !== "Market closed") { //2
-                console.log(`${requestedTicker} - Market is open.`)
-                if (currentEasternTime.diff(newestTimeBlock, "minutes") > 15) { //3
-                    console.log(`${requestedTicker} - Data is more than 15 minutes old. Current market time: ${currentEasternTime}, last data as of: ${newestTimeBlock}`)
-                    refreshData = true //4
-                } else {
-                    console.log(`${requestedTicker} - Data is less than 15 minutes old. Current market time: ${currentEasternTime}, last data as of: ${newestTimeBlock}`)
-                    refreshData = false //5
-                }
-            } else if (marketStatusCheck(newestTimeBlock) !== "Market closed") { //6
-                console.log(`${requestedTicker} - Last data was pulled while market was open. Last data as of: ${newestTimeBlock}`)
-                refreshData = true //7
-            } else if ((currentEasternTime.diff(newestTimeBlock, "hours")) >= 8) { //8
-                console.log(`${requestedTicker} - Data is more than 8 hours old. Last data as of: ${newestTimeBlock}`)
-                refreshData = true //9
-            } else {
-                console.log(`${requestedTicker} - Market is closed & data is less than 8 hours old. Last data as of: ${newestTimeBlock}`)
-                refreshData = false //10
+            let newestDataPull = moment(localData[0]["data_pulled"].toString()).tz("America/New_York")
+            if (marketStatusCheck(currentEasternTime) !== "Market closed" && currentEasternTime.diff(newestDataPull, "minutes") < 15) {
+                refreshData = false
+            } else if (marketStatusCheck(newestDataPull) === "Market closed" || (currentEasternTime.diff(newestDataPull, "hours")) < 8) {
+                refreshData = false
             }
-        } else {
-            console.log(`${requestedTicker} - No local data is available.`)
-            refreshData = true //11
         }
 
         let responseData = [];
