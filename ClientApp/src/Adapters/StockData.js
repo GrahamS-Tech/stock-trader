@@ -1,10 +1,4 @@
-﻿//Pre - market trading: 4:00 a.m.to 9: 30 a.m.EST
-//Regular trading hours: 9:30 a.m.to 4:00 p.m.EST
-//After - hours trading: 4:00 p.m.to 8:00 p.m.EST
-
-//Current Price URL: https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=IBM&entitlement=delayed&apikey={apiKey}
-//Daily Price History (15min interval): https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=15min&entitlement=delayed&apikey={apiKey}
-import moment from "moment-timezone"
+﻿import moment from "moment-timezone"
 import { cache } from "../Storage/jsstore_con.js"
 
 export async function getCurrenPrice(currentUser, requestedTicker) {
@@ -50,7 +44,7 @@ export async function getCurrenPrice(currentUser, requestedTicker) {
             responseData = result.Data['Global Quote - DATA DELAYED BY 15 MINUTES'];
         } catch (err) {
             console.error("Error in stock API call")
-            console.log(err)
+            console.error(err)
             result.Status = "Error";
             result.Message = err;
             return result
@@ -77,11 +71,9 @@ export async function getCurrenPrice(currentUser, requestedTicker) {
             upsert: true,
             values: [newStockData]
         })
-
         result.Status = "success"
         result.Data = responseData['05. price']
     }
-
     return result.Data
 }
 
@@ -126,7 +118,6 @@ export async function refreshDailyPriceHistory(currentUser, requestedTickers) {
         let localDataKeys = Object.keys(localData);
         let currentEasternTime = moment.tz("America/New_York")
         if (localDataKeys.length !== 0) {
-            console.log(`${requestedTicker} - Local data is present. ${localDataKeys.length} entries found.`)
             let newestDataPull = moment(localData[0]["data_pulled"].toString()).tz("America/New_York")
             if (marketStatusCheck(currentEasternTime) !== "Market closed" && currentEasternTime.diff(newestDataPull, "minutes") < 15) {
                 refreshData = false
@@ -153,13 +144,12 @@ export async function refreshDailyPriceHistory(currentUser, requestedTickers) {
                 responseMetaData = result.Data["Meta Data"]
             } catch (err) {
                 console.error("Error in stock API call")
-                console.log(err)
+                console.error(err)
                 errorCount++
             }
 
             if (result.Status === "success") {
                 let newStockData = []
-                let newStockDataKeys = Object.keys(responseData);
                 let startEntry = moment(responseMetaData["3. Last Refreshed"].substring(0,11) + "04:00:00-4:00")
                 let endEntry = moment(responseMetaData["3. Last Refreshed"].substring(0,11) + "19:45:00-4:00")
                 let lastEntryFound
@@ -199,20 +189,20 @@ export async function refreshDailyPriceHistory(currentUser, requestedTickers) {
                         low = parseFloat(responseData[entrySearchString]["4. close"])
                         volume = 0
                     }
-                        const newEntry = {
-                            ticker_time_block: `${requestedTicker}-${moment(startEntry).tz("America/New_York").format("YYYY-MM-DD HH:mm:ss")}`,
-                            ticker: requestedTicker,
-                            open: open,
-                            high: high,
-                            low: low,
-                            close: close,
-                            volume: volume,
-                            time_block: startEntry.toDate(),
-                            data_pulled: currentEasternTime.toDate(),
-                            data_expiration: currentEasternTime.clone().add(1, "days").toDate(),
-                            data_source: dataSource
-                        }
-                        newStockData.push(newEntry)
+                    const newEntry = {
+                        ticker_time_block: `${requestedTicker}-${moment(startEntry).tz("America/New_York").format("YYYY-MM-DD HH:mm:ss")}`,
+                        ticker: requestedTicker,
+                        open: open,
+                        high: high,
+                        low: low,
+                        close: close,
+                        volume: volume,
+                        time_block: startEntry.toDate(),
+                        data_pulled: currentEasternTime.toDate(),
+                        data_expiration: currentEasternTime.clone().add(1, "days").toDate(),
+                        data_source: dataSource
+                    }
+                    newStockData.push(newEntry)
                 }
 
                 await dataCache.insert({
