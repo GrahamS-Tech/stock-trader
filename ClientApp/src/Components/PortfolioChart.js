@@ -42,7 +42,7 @@ export default function PortfolioChart(props) {
             let newEntries = [];
             const result = await getTransactionsByDate(currentUser, moment.utc(marketOpen).format(), moment(nowUTC).format())
             if (result.Status === "success" && result.Data.length !== 0) {
-                result.data.map(async (transaction) => {
+                result.Data.map(async (transaction) => {
                 const newEntry = {
                     transaction_id: transaction.Id,
                     ticker: transaction.Ticker,
@@ -68,20 +68,40 @@ export default function PortfolioChart(props) {
                     activeHoldings.push(holding.Ticker)
                 }
             })
-            const stockDataRefresh = await refreshDailyPriceHistory(currentUser, activeHoldings) //Refresh data cache for all needed tickers
-                if (stockDataRefresh.Status === "Success") {
+            const stockDataRefresh = await refreshDailyPriceHistory(currentUser, activeHoldings)
+            if (stockDataRefresh.Status === "Success") {
+                let startEntry = moment(marketOpen).tz("America/New_York").toDate();
+                console.log(startEntry)
+                const data = await dataCache.select({
+                    from: "DailyPriceHistory-v1",
+                    where: {
+                        ticker: {
+                            in: activeHoldings
+                        }
+                    },
+                    join: {
+                        with: "TransactionHistory-v1",
+                        on: "DailyPriceHistory-v1.ticker=TransactionHistory-v1.ticker",
+                        type: "left"
+                    //     where: {
+                    //         transaction_date: {
+                    //             "-": {
+                    //                 low: marketOpen,
+                    //                 high: marketClose
+                    //             }
+                    //         }
+                    //     },
+                    //     aggregate: {
+                    //         sum: "shares"
+                    //     }
+                    }
+                })
+                console.log(data)
+                //})
 
-                    //start at market open time, loop until market close time
-                    //loop through each stock and find the entry from data cache that corresponds with the timeslot
-                    //if there has been a transaction after the end of the current time slot, pull all transactions since,
-                        //add the values for all transactions and add to the current stock balance
-                    //Multiply current stock balance by the 'open' price from data cache for current time slot
-                    //Store this value and repeat for the next stock
-                    //Add all totals together
-                    //Create new entry in chartData array
-                } else {
-                    setError("Chart data could not be loaded. Try again later")
-                }
+            } else {
+                setError("Chart data could not be loaded. Try again later")
+            }
            } catch (err) {
                console.error(err)
                setError("Chart data could not be loaded. Try again later")
