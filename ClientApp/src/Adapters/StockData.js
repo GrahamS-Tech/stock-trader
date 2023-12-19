@@ -50,7 +50,7 @@ export async function getCurrenPrice(currentUser, requestedTicker) {
             return result
         }
 
-        const lastTradingDay = new Date(responseData['07. latest trading day']);
+        const lastTradingDay = moment(responseData['07. latest trading day']).hours(0).minutes(0).seconds(0).toDate();
 
         const newStockData = {
             ticker: responseData['01. symbol'],
@@ -96,21 +96,113 @@ function marketStatusCheck(dateTimeMoment) {
         return "Market closed"
     }
 }
-//<----------------Function incomplete-------------------->
-export async function refreshDailyPriceHistory(currentUser, requestedTickers) {
-    const dataCache = await cache;
-    let errorCount = 0;
-    let result = {};
 
+async function cacheStockData(requestedTicker, data, interval) {
+    const dataCache = await cache;
+    let currentEasternTime = moment.tz("America/New_York")
+    let newStockData = []
+    let responseData = [];
+    let responseMetaData = [];
+    let result = {};
+    const keys = Object.keys(data)
+    responseMetaData = data[keys[0]]
+    responseData = data[keys[1]];
+    const estOffset = currentEasternTime.format("Z")
+    let startEntry = moment(responseMetaData["3. Last Refreshed"]
+        .substring(0,11) + "04:00:00" + estOffset)
+    let endEntry = moment(responseMetaData["3. Last Refreshed"]
+        .substring(0,11) + "19:45:00" + estOffset)
+    let lastEntryFound
+    for (startEntry; startEntry.isSameOrBefore(endEntry); startEntry.add(15,"minutes")) {
+        let entrySearch = startEntry.clone();
+        let entrySearchString = moment(entrySearch)
+            .tz("America/New_York")
+            .format("YYYY-MM-DD HH:mm:ss")
+        let dataDerivedFromFuture = false
+        let dataDerivedFromPast = false
+        while (responseData[entrySearchString] === undefined && entrySearch.isSameOrBefore(endEntry)) {
+            dataDerivedFromFuture = true
+            entrySearch.add(15, "minutes")
+            entrySearchString = moment(entrySearch)
+                .tz("America/New_York")
+                .format("YYYY-MM-DD HH:mm:ss")
+        }
+        if (entrySearch.isAfter(endEntry)) {
+            dataDerivedFromPast = true
+            entrySearchString = lastEntryFound
+        } else {
+            lastEntryFound = entrySearchString
+        }
+        let dataSource = "Actual"
+        let open = parseFloat(responseData[entrySearchString]["1. open"])
+        let high = parseFloat(responseData[entrySearchString]["2. high"])
+        let low = parseFloat(responseData[entrySearchString]["3. low"])
+        let close = parseFloat(responseData[entrySearchString]["4. close"])
+        let volume = parseFloat(responseData[entrySearchString]["5. volume"])
+        if (dataDerivedFromFuture) {
+            dataSource = "Derived from future data"
+            high = parseFloat(responseData[entrySearchString]["1. open"])
+            low = parseFloat(responseData[entrySearchString]["1. open"])
+            close = parseFloat(responseData[entrySearchString]["1. open"])
+            volume = 0
+        }
+        if (dataDerivedFromPast) {
+            dataSource = "Derived from past data"
+            open = parseFloat(responseData[entrySearchString]["4. close"])
+            high = parseFloat(responseData[entrySearchString]["4. close"])
+            low = parseFloat(responseData[entrySearchString]["4. close"])
+            volume = 0
+        }
+        const newEntry = {
+            ticker_time_block: `${requestedTicker.ticker}-${moment(startEntry)
+                .tz("America/New_York")
+                .format("YYYY-MM-DD HH:mm:ss")}`,
+            ticker: requestedTicker.ticker,
+            date_time_block_string: moment(startEntry)
+                .tz("America/New_York")
+                .format("YYYY-MM-DD HH:mm:ss"),
+            time_string: moment(startEntry)
+                .tz("America/New_York")
+                .format("h:mm A"),
+            interval: interval,
+            open: open,
+            high: high,
+            low: low,
+            close: close,
+            volume: volume,
+            time_block: startEntry.toDate(),
+            data_pulled: currentEasternTime.toDate(),
+            data_expiration: currentEasternTime.clone().add(1, "days").toDate(),
+            data_source: dataSource,
+            current_holdings: requestedTicker.balance
+        }
+        newStockData.push(newEntry)
+    }
+
+    await dataCache.insert({
+        into: "StockDataPriceHistory-v1",
+        values: newStockData,
+        upsert: true
+    })
+    result.Status = "success"
+    result.Message = "Data successfully cached"
+    return result
+}
+
+export async function refreshIntradayPriceHistory(currentUser, requestedTickers) {
+    const dataCache = await cache;
+    let result = {};
+    let storeData = ""
     requestedTickers.map(async(requestedTicker) => {
         const localData = await dataCache.select({
-            from: "DailyPriceHistory-v1",
+            from: "StockDataPriceHistory-v1",
             order: {
                 by:"data_pulled",
                 type: "desc"
             },
             where: {
-                ticker: requestedTicker
+                ticker: requestedTicker.ticker,
+                interval: "Intraday"
             }
         });
 
@@ -118,21 +210,22 @@ export async function refreshDailyPriceHistory(currentUser, requestedTickers) {
         let localDataKeys = Object.keys(localData);
         let currentEasternTime = moment.tz("America/New_York")
         if (localDataKeys.length !== 0) {
-            let newestDataPull = moment(localData[0]["data_pulled"].toString()).tz("America/New_York")
-            if (marketStatusCheck(currentEasternTime) !== "Market closed" && currentEasternTime.diff(newestDataPull, "minutes") < 15) {
+            let newestDataPull = moment(localData[0]["data_pulled"]
+                .toString()).tz("America/New_York")
+            if (marketStatusCheck(currentEasternTime) !== "Market closed"
+                && currentEasternTime.diff(newestDataPull, "minutes") < 15) {
                 refreshData = false
-            } else if (marketStatusCheck(newestDataPull) === "Market closed" || (currentEasternTime.diff(newestDataPull, "hours")) < 8) {
+            } else if (marketStatusCheck(newestDataPull) === "Market closed"
+                && (currentEasternTime.diff(newestDataPull, "hours")) < 8) {
                 refreshData = false
             }
         }
 
-        let responseData = [];
-        let responseMetaData = [];
         if (refreshData) {
             try {
                 const response = await fetch(
-                    "https://stock-trader-api.azurewebsites.net/api/StockData/PriceHistory/" +
-                    requestedTicker, {
+                    "https://stock-trader-api.azurewebsites.net/api/StockData/IntradayPriceHistory/" +
+                    requestedTicker.ticker, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -140,88 +233,143 @@ export async function refreshDailyPriceHistory(currentUser, requestedTickers) {
                     }
                 });
                 result = await response.json();
-                responseData = result.Data["Time Series (15min)"];
-                responseMetaData = result.Data["Meta Data"]
             } catch (err) {
                 console.error("Error in stock API call")
                 console.error(err)
-                errorCount++
             }
 
             if (result.Status === "success") {
-                let newStockData = []
-                let startEntry = moment(responseMetaData["3. Last Refreshed"].substring(0,11) + "04:00:00-4:00")
-                let endEntry = moment(responseMetaData["3. Last Refreshed"].substring(0,11) + "19:45:00-4:00")
-                let lastEntryFound
-                for (startEntry; startEntry.isSameOrBefore(endEntry); startEntry.add(15,"minutes")) {
-                    let entrySearch = startEntry.clone();
-                    let entrySearchString = moment(entrySearch).tz("America/New_York").format("YYYY-MM-DD HH:mm:ss")
-                    let dataDerivedFromFuture = false
-                    let dataDerivedFromPast = false
-                    while (responseData[entrySearchString] === undefined && entrySearch.isSameOrBefore(endEntry)) {
-                        dataDerivedFromFuture = true
-                        entrySearch.add(15, "minutes")
-                        entrySearchString = moment(entrySearch).tz("America/New_York").format("YYYY-MM-DD HH:mm:ss")
-                    }
-                    if (entrySearch.isAfter(endEntry)) {
-                        dataDerivedFromPast = true
-                        entrySearchString = lastEntryFound
-                    } else {
-                        lastEntryFound = entrySearchString
-                    }
-                    let dataSource = "Actual"
-                    let open = parseFloat(responseData[entrySearchString]["1. open"])
-                    let high = parseFloat(responseData[entrySearchString]["2. high"])
-                    let low = parseFloat(responseData[entrySearchString]["3. low"])
-                    let close = parseFloat(responseData[entrySearchString]["4. close"])
-                    let volume = parseFloat(responseData[entrySearchString]["5. volume"])
-                    if (dataDerivedFromFuture) {
-                        dataSource = "Derived from future data"
-                        high = parseFloat(responseData[entrySearchString]["1. open"])
-                        low = parseFloat(responseData[entrySearchString]["1. open"])
-                        close = parseFloat(responseData[entrySearchString]["1. open"])
-                        volume = 0
-                    }
-                    if (dataDerivedFromPast) {
-                        dataSource = "Derived from past data"
-                        open = parseFloat(responseData[entrySearchString]["4. close"])
-                        high = parseFloat(responseData[entrySearchString]["4. close"])
-                        low = parseFloat(responseData[entrySearchString]["4. close"])
-                        volume = 0
-                    }
-                    const newEntry = {
-                        ticker_time_block: `${requestedTicker}-${moment(startEntry).tz("America/New_York").format("YYYY-MM-DD HH:mm:ss")}`,
-                        ticker: requestedTicker,
-                        open: open,
-                        high: high,
-                        low: low,
-                        close: close,
-                        volume: volume,
-                        time_block: startEntry.toDate(),
-                        data_pulled: currentEasternTime.toDate(),
-                        data_expiration: currentEasternTime.clone().add(1, "days").toDate(),
-                        data_source: dataSource
-                    }
-                    newStockData.push(newEntry)
-                }
-
-                await dataCache.insert({
-                    into: "DailyPriceHistory-v1",
-                    values: newStockData,
-                    upsert: true
-                })
-                result.Status = "success"
-            } else {
-                errorCount++
+                storeData = await cacheStockData(requestedTicker, result.Data, "Intraday")
             }
         }
     })
-    if (errorCount > 0) {
-        result.Status = "Error"
-        result.Message = `${errorCount} entries could not be refreshed`
-    } else {
-        result.Status = "Success"
-        result.Message = "All entries refreshed"
-    }
+
+    result.Status = "Success"
+    result.Message = "All entries refreshed"
     return result
+}
+
+export async function refreshDailyPriceHistory(currentUser, requestedTickers) {
+    const dataCache = await cache;
+    let result = {};
+    let storeData = ""
+    requestedTickers.map(async(requestedTicker) => {
+        const localData = await dataCache.select({
+            from: "StockDataPriceHistory-v1",
+            order: {
+                by:"data_pulled",
+                type: "desc"
+            },
+            where: {
+                ticker: requestedTicker.ticker,
+                interval: "Daily"
+            }
+        });
+
+        let refreshData = true;
+        let localDataKeys = Object.keys(localData);
+        let currentEasternTime = moment.tz("America/New_York")
+        //Rework this logic for daily data
+        if (localDataKeys.length !== 0) {
+            let newestDataPull = moment(localData[0]["data_pulled"]
+                .toString()).tz("America/New_York")
+            if (marketStatusCheck(currentEasternTime) !== "Market closed"
+                && currentEasternTime.diff(newestDataPull, "minutes") < 15) {
+                refreshData = false
+            } else if (marketStatusCheck(newestDataPull) === "Market closed"
+                && (currentEasternTime.diff(newestDataPull, "hours")) < 8) {
+                refreshData = false
+            }
+        }
+
+        if (refreshData) {
+            try {
+                const response = await fetch(
+                    "https://stock-trader-api.azurewebsites.net/api/StockData/DailyPriceHistory/" +
+                    requestedTicker.ticker, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + currentUser
+                        }
+                    });
+                result = await response.json();
+            } catch (err) {
+                console.error("Error in stock API call")
+                console.error(err)
+            }
+
+            if (result.Status === "success") {
+                storeData = await cacheStockData(requestedTicker, result.Data, "Daily")
+            }
+        }
+    })
+
+    result.Status = "Success"
+    result.Message = "All entries refreshed"
+    return result
+
+}
+
+export async function refreshMonthlyPriceHistory(currentUser, requestedTickers) {
+    const dataCache = await cache;
+    let result = {};
+    let storeData = ""
+    requestedTickers.map(async(requestedTicker) => {
+        //5
+        const localData = await dataCache.select({
+            from: "StockDataPriceHistory-v1",
+            order: {
+                by:"data_pulled",
+                type: "desc"
+            },
+            where: {
+                ticker: requestedTicker.ticker,
+                interval: "Monthly"
+            }
+        });
+
+        let refreshData = true;
+        let localDataKeys = Object.keys(localData);
+        let currentEasternTime = moment.tz("America/New_York")
+        //Rework this logic for monthly data
+        if (localDataKeys.length !== 0) {
+            let newestDataPull = moment(localData[0]["data_pulled"]
+                .toString()).tz("America/New_York")
+            if (marketStatusCheck(currentEasternTime) !== "Market closed"
+                && currentEasternTime.diff(newestDataPull, "minutes") < 15) {
+                refreshData = false
+            } else if (marketStatusCheck(newestDataPull) === "Market closed"
+                && (currentEasternTime.diff(newestDataPull, "hours")) < 8) {
+                refreshData = false
+            }
+        }
+
+        if (refreshData) {
+            try {
+                const response = await fetch(
+                    "https://stock-trader-api.azurewebsites.net/api/StockData/MonthlyPriceHistory/" +
+                    requestedTicker.ticker, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + currentUser
+                        }
+                    });
+                result = await response.json();
+            } catch (err) {
+                console.error("Error in stock API call")
+                console.error(err)
+            }
+
+            if (result.Status === "success") {
+                storeData = await cacheStockData(requestedTicker, result.Data, "Monthly")
+            }
+        }
+    })
+
+    result.Status = "Success"
+    result.Message = "All entries refreshed"
+    return result
+
 }

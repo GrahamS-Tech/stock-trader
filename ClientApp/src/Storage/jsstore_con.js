@@ -11,7 +11,6 @@ async function initDb() {
 export const cache = initDb();
 
 function getDbSchema() {
-    //create tables for current price & daily price history
     const tblPrice = {
         name: "CurrentPrice-v1",
         columns: {
@@ -48,44 +47,31 @@ function getDbSchema() {
             },
             data_expiration: {
                 dataType: "date_time"
+            },
+            current_holdings: {
+                dataType: "number"
             }
         }
     }
 
-    const tblTransactionHistory = {
-        name: "TransactionHistory-v1",
-        columns: {
-            transaction_id: {
-                primaryKey: true,
-                dataType: "number"
-            },
-            ticker: {
-                dataType: "string"
-            },
-            shares: {
-                dataType: "number"
-            },
-            market_value: {
-                dataType: "number"
-            },
-            transaction_type: {
-                dataType: "string"
-            },
-            transaction_date: {
-                dataType: "date_time"
-            }
-        }
-    }
-
-    const tblDailyHistory = {
-        name: "DailyPriceHistory-v1",
+    const tblStockDataHistory = {
+        name: "StockDataPriceHistory-v1",
         columns: {
             ticker_time_block: {
                 primaryKey: true,
                 dataType: "string"
             },
+            date_time_block_string: {
+                dataType: "string"
+            },
+            time_string: {
+                dataType: "string"
+            },
+            interval: {
+              dataType: "string"
+            },
             ticker: {
-                dataType: 'string'
+                dataType: "string"
             },
             open: {
                 dataType: "number"
@@ -113,13 +99,44 @@ function getDbSchema() {
             },
             data_source: {
                 dataType: "string"
+            },
+            current_holdings: {
+                dataType: "number"
+            }
+        }
+    }
+
+    const tblTransactionHistory = {
+        name: "TransactionHistory-v1",
+        columns: {
+            transaction_id: {
+                primaryKey: true,
+                dataType: "number"
+            },
+            ticker: {
+                dataType: "string"
+            },
+            ticker_time_block: {
+                dataType: "string"
+            },
+            traded_shares: {
+                dataType: "number"
+            },
+            market_value: {
+                dataType: "number"
+            },
+            transaction_type: {
+                dataType: "string"
+            },
+            transaction_date: {
+                dataType: "date_time"
             }
         }
     }
 
     const db = {
         name: "StockDataCache",
-        tables: [tblPrice, tblTransactionHistory, tblDailyHistory]
+        tables: [tblPrice, tblTransactionHistory, tblStockDataHistory]
     }
 
     return db;
