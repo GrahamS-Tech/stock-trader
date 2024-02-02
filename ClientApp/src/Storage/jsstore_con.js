@@ -64,7 +64,7 @@ function getDbSchema() {
             date_time_block_string: {
                 dataType: "string"
             },
-            time_string: {
+            chart_group: {
                 dataType: "string"
             },
             interval: {
@@ -117,6 +117,9 @@ function getDbSchema() {
                 dataType: "string"
             },
             ticker_time_block: {
+                dataType: "string"
+            },
+            ticker_date_block: {
                 dataType: "string"
             },
             traded_shares: {

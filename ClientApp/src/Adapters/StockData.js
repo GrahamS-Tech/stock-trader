@@ -108,77 +108,110 @@ async function cacheStockData(requestedTicker, data, interval) {
     responseMetaData = data[keys[0]]
     responseData = data[keys[1]];
     const estOffset = currentEasternTime.format("Z")
-    let startEntry = moment(responseMetaData["3. Last Refreshed"]
-        .substring(0,11) + "04:00:00" + estOffset)
-    let endEntry = moment(responseMetaData["3. Last Refreshed"]
-        .substring(0,11) + "19:45:00" + estOffset)
-    let lastEntryFound
-    for (startEntry; startEntry.isSameOrBefore(endEntry); startEntry.add(15,"minutes")) {
-        let entrySearch = startEntry.clone();
-        let entrySearchString = moment(entrySearch)
-            .tz("America/New_York")
-            .format("YYYY-MM-DD HH:mm:ss")
-        let dataDerivedFromFuture = false
-        let dataDerivedFromPast = false
-        while (responseData[entrySearchString] === undefined && entrySearch.isSameOrBefore(endEntry)) {
-            dataDerivedFromFuture = true
-            entrySearch.add(15, "minutes")
-            entrySearchString = moment(entrySearch)
-                .tz("America/New_York")
-                .format("YYYY-MM-DD HH:mm:ss")
-        }
-        if (entrySearch.isAfter(endEntry)) {
-            dataDerivedFromPast = true
-            entrySearchString = lastEntryFound
-        } else {
-            lastEntryFound = entrySearchString
-        }
-        let dataSource = "Actual"
-        let open = parseFloat(responseData[entrySearchString]["1. open"])
-        let high = parseFloat(responseData[entrySearchString]["2. high"])
-        let low = parseFloat(responseData[entrySearchString]["3. low"])
-        let close = parseFloat(responseData[entrySearchString]["4. close"])
-        let volume = parseFloat(responseData[entrySearchString]["5. volume"])
-        if (dataDerivedFromFuture) {
-            dataSource = "Derived from future data"
-            high = parseFloat(responseData[entrySearchString]["1. open"])
-            low = parseFloat(responseData[entrySearchString]["1. open"])
-            close = parseFloat(responseData[entrySearchString]["1. open"])
-            volume = 0
-        }
-        if (dataDerivedFromPast) {
-            dataSource = "Derived from past data"
-            open = parseFloat(responseData[entrySearchString]["4. close"])
-            high = parseFloat(responseData[entrySearchString]["4. close"])
-            low = parseFloat(responseData[entrySearchString]["4. close"])
-            volume = 0
-        }
-        const newEntry = {
-            ticker_time_block: `${requestedTicker.ticker}-${moment(startEntry)
-                .tz("America/New_York")
-                .format("YYYY-MM-DD HH:mm:ss")}`,
-            ticker: requestedTicker.ticker,
-            date_time_block_string: moment(startEntry)
-                .tz("America/New_York")
-                .format("YYYY-MM-DD HH:mm:ss"),
-            time_string: moment(startEntry)
-                .tz("America/New_York")
-                .format("h:mm A"),
-            interval: interval,
-            open: open,
-            high: high,
-            low: low,
-            close: close,
-            volume: volume,
-            time_block: startEntry.toDate(),
-            data_pulled: currentEasternTime.toDate(),
-            data_expiration: currentEasternTime.clone().add(1, "days").toDate(),
-            data_source: dataSource,
-            current_holdings: requestedTicker.balance
-        }
-        newStockData.push(newEntry)
+    switch(interval) {
+        case "Intraday":
+            let startEntry = moment(responseMetaData["3. Last Refreshed"]
+                .substring(0,11) + "04:00:00" + estOffset)
+            let endEntry = moment(responseMetaData["3. Last Refreshed"]
+                .substring(0,11) + "19:45:00" + estOffset)
+            let lastEntryFound
+            for (startEntry; startEntry.isSameOrBefore(endEntry); startEntry.add(15,"minutes")) {
+                let entrySearch = startEntry.clone();
+                let entrySearchString = moment(entrySearch)
+                    .tz("America/New_York")
+                    .format("YYYY-MM-DD HH:mm:ss")
+                let dataDerivedFromFuture = false
+                let dataDerivedFromPast = false
+                while (responseData[entrySearchString] === undefined && entrySearch.isSameOrBefore(endEntry)) {
+                    dataDerivedFromFuture = true
+                    entrySearch.add(15, "minutes")
+                    entrySearchString = moment(entrySearch)
+                        .tz("America/New_York")
+                        .format("YYYY-MM-DD HH:mm:ss")
+                }
+                if (entrySearch.isAfter(endEntry)) {
+                    dataDerivedFromPast = true
+                    entrySearchString = lastEntryFound
+                } else {
+                    lastEntryFound = entrySearchString
+                }
+                let dataSource = "Actual"
+                let open = parseFloat(responseData[entrySearchString]["1. open"])
+                let high = parseFloat(responseData[entrySearchString]["2. high"])
+                let low = parseFloat(responseData[entrySearchString]["3. low"])
+                let close = parseFloat(responseData[entrySearchString]["4. close"])
+                let volume = parseFloat(responseData[entrySearchString]["5. volume"])
+                if (dataDerivedFromFuture) {
+                    dataSource = "Derived from future data"
+                    high = parseFloat(responseData[entrySearchString]["1. open"])
+                    low = parseFloat(responseData[entrySearchString]["1. open"])
+                    close = parseFloat(responseData[entrySearchString]["1. open"])
+                    volume = 0
+                }
+                if (dataDerivedFromPast) {
+                    dataSource = "Derived from past data"
+                    open = parseFloat(responseData[entrySearchString]["4. close"])
+                    high = parseFloat(responseData[entrySearchString]["4. close"])
+                    low = parseFloat(responseData[entrySearchString]["4. close"])
+                    volume = 0
+                }
+                const newEntry = {
+                    ticker_time_block: `${requestedTicker.ticker}-${moment(startEntry)
+                        .tz("America/New_York")
+                        .format("YYYY-MM-DD HH:mm:ss")}`,
+                    ticker: requestedTicker.ticker,
+                    date_time_block_string: moment(startEntry)
+                        .tz("America/New_York")
+                        .format("YYYY-MM-DD HH:mm:ss"),
+                    chart_group: moment(startEntry)
+                        .tz("America/New_York")
+                        .format("h:mm A"),
+                    interval: interval,
+                    open: open,
+                    high: high,
+                    low: low,
+                    close: close,
+                    volume: volume,
+                    time_block: startEntry.toDate(),
+                    data_pulled: currentEasternTime.toDate(),
+                    data_expiration: currentEasternTime.clone().add(1, "days").toDate(),
+                    data_source: dataSource,
+                    current_holdings: requestedTicker.balance
+                }
+                newStockData.push(newEntry)
+            }
+            break;
+        case "Daily":
+        case "Monthly":
+            Object.keys(responseData).forEach(i => {
+                let dataSource = "Actual"
+                let open = parseFloat(responseData[i]["1. open"])
+                let high = parseFloat(responseData[i]["2. high"])
+                let low = parseFloat(responseData[i]["3. low"])
+                let close = parseFloat(responseData[i]["4. close"])
+                let volume = parseFloat(responseData[i]["5. volume"])
+                const newEntry = {
+                    ticker_time_block: `${requestedTicker.ticker}-${moment(i)
+                        .format("YYYY-MM-DD HH:mm:ss")}`,
+                    ticker: requestedTicker.ticker,
+                    chart_group: moment(i)
+                        .tz("America/New_York")
+                        .format("YYYY-MM-DD"),
+                    interval: interval,
+                    open: open,
+                    high: high,
+                    low: low,
+                    close: close,
+                    volume: volume,
+                    time_block: moment(i).toDate(),
+                    data_pulled: currentEasternTime.toDate(),
+                    data_source: dataSource,
+                    current_holdings: requestedTicker.balance
+                }
+                newStockData.push(newEntry)
+            })
+            break;
     }
-
     await dataCache.insert({
         into: "StockDataPriceHistory-v1",
         values: newStockData,
@@ -193,7 +226,7 @@ export async function refreshIntradayPriceHistory(currentUser, requestedTickers)
     const dataCache = await cache;
     let result = {};
     let storeData = ""
-    requestedTickers.map(async(requestedTicker) => {
+    for (const requestedTicker of requestedTickers) {
         const localData = await dataCache.select({
             from: "StockDataPriceHistory-v1",
             order: {
@@ -220,7 +253,7 @@ export async function refreshIntradayPriceHistory(currentUser, requestedTickers)
                 refreshData = false
             }
         }
-
+        //TODO: result is overwritten with each loop, should be aggregated
         if (refreshData) {
             try {
                 const response = await fetch(
@@ -237,13 +270,12 @@ export async function refreshIntradayPriceHistory(currentUser, requestedTickers)
                 console.error("Error in stock API call")
                 console.error(err)
             }
-
             if (result.Status === "success") {
                 storeData = await cacheStockData(requestedTicker, result.Data, "Intraday")
             }
         }
-    })
-
+    }
+    //TODO: This should be under a 'return' statement
     result.Status = "Success"
     result.Message = "All entries refreshed"
     return result
@@ -253,7 +285,7 @@ export async function refreshDailyPriceHistory(currentUser, requestedTickers) {
     const dataCache = await cache;
     let result = {};
     let storeData = ""
-    requestedTickers.map(async(requestedTicker) => {
+    for (const requestedTicker of requestedTickers) {
         const localData = await dataCache.select({
             from: "StockDataPriceHistory-v1",
             order: {
@@ -269,15 +301,10 @@ export async function refreshDailyPriceHistory(currentUser, requestedTickers) {
         let refreshData = true;
         let localDataKeys = Object.keys(localData);
         let currentEasternTime = moment.tz("America/New_York")
-        //Rework this logic for daily data
         if (localDataKeys.length !== 0) {
             let newestDataPull = moment(localData[0]["data_pulled"]
                 .toString()).tz("America/New_York")
-            if (marketStatusCheck(currentEasternTime) !== "Market closed"
-                && currentEasternTime.diff(newestDataPull, "minutes") < 15) {
-                refreshData = false
-            } else if (marketStatusCheck(newestDataPull) === "Market closed"
-                && (currentEasternTime.diff(newestDataPull, "hours")) < 8) {
+            if (moment(newestDataPull).isSame(currentEasternTime, "day")) {
                 refreshData = false
             }
         }
@@ -303,7 +330,7 @@ export async function refreshDailyPriceHistory(currentUser, requestedTickers) {
                 storeData = await cacheStockData(requestedTicker, result.Data, "Daily")
             }
         }
-    })
+    }
 
     result.Status = "Success"
     result.Message = "All entries refreshed"
@@ -315,7 +342,7 @@ export async function refreshMonthlyPriceHistory(currentUser, requestedTickers) 
     const dataCache = await cache;
     let result = {};
     let storeData = ""
-    requestedTickers.map(async(requestedTicker) => {
+    for (const requestedTicker of requestedTickers) {
         //5
         const localData = await dataCache.select({
             from: "StockDataPriceHistory-v1",
@@ -332,15 +359,10 @@ export async function refreshMonthlyPriceHistory(currentUser, requestedTickers) 
         let refreshData = true;
         let localDataKeys = Object.keys(localData);
         let currentEasternTime = moment.tz("America/New_York")
-        //Rework this logic for monthly data
         if (localDataKeys.length !== 0) {
             let newestDataPull = moment(localData[0]["data_pulled"]
                 .toString()).tz("America/New_York")
-            if (marketStatusCheck(currentEasternTime) !== "Market closed"
-                && currentEasternTime.diff(newestDataPull, "minutes") < 15) {
-                refreshData = false
-            } else if (marketStatusCheck(newestDataPull) === "Market closed"
-                && (currentEasternTime.diff(newestDataPull, "hours")) < 8) {
+            if (moment(newestDataPull).isSame(currentEasternTime, "month")) {
                 refreshData = false
             }
         }
@@ -366,7 +388,7 @@ export async function refreshMonthlyPriceHistory(currentUser, requestedTickers) 
                 storeData = await cacheStockData(requestedTicker, result.Data, "Monthly")
             }
         }
-    })
+    }
 
     result.Status = "Success"
     result.Message = "All entries refreshed"

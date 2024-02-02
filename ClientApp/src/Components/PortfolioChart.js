@@ -1,4 +1,4 @@
-﻿import React, {useState, useEffect, useCallback, useTransition, useRef} from "react";
+﻿import React, {useState, useEffect, useCallback} from "react";
 import moment from "moment-timezone"
 import {ButtonToolbar, ButtonGroup, Button, Form, Alert} from 'react-bootstrap';
 import { cache } from "../Storage/jsstore_con.js"
@@ -30,7 +30,7 @@ export default function PortfolioChart(props) {
         { type: "number", label: "Open, [High, Low]" },
         { id: "high", type: "number", role: "interval" },
         {id: "low", type: "number", role: "interval"}]
-        //Add 'current value' on to the end if the market is still open
+        //TODO:Add 'current value' on to the end if the market is still open
     ];
 
     const getChartData = useCallback(async () => {
@@ -38,7 +38,7 @@ export default function PortfolioChart(props) {
             setError("");
             setLoading(true)
             const dataCache = await cache;
-            let chartStartEST, chartEndEST;
+            let chartStartEST, chartEndEST, chartStartUTC, chartEndUTC;
             let interval = "";
 
             try {
@@ -77,30 +77,38 @@ export default function PortfolioChart(props) {
                         }
                         break;
                     case "W":
-                        chartStartEST = moment(newestData).subtract((newestData.weekday()-1),"days");
+                        chartStartEST = moment(newestData).subtract(7, "days");
                         chartEndEST = moment(newestData);
                         break;
                     case "M":
-                        chartStartEST = moment(newestData).subtract((newestData.date()-1),"days");
+                        chartStartEST = moment(newestData).subtract(1, "months");
                         chartEndEST = moment(newestData);
                         break;
                     case "YTD":
-                        chartStartEST = moment(newestData).subtract((newestData.dayOfYear()-1),"days");
+                        //TODO: If it is january, show daily, if it is after january, show weekly
+                        chartStartEST = moment(newestData).subtract((newestData.dayOfYear() - 1), "days");
                         chartEndEST = moment(newestData);
                         break;
                     case "Y":
-                        chartStartEST = moment(newestData).subtract(1,"years");
+                        chartStartEST = moment(newestData).subtract(1, "years");
                         chartEndEST = moment(newestData);
                         break;
                     case "5Y":
-                        chartStartEST = moment(newestData).subtract(5,"years");
+                        chartStartEST = moment(newestData).subtract(5, "years");
                         chartEndEST = moment(newestData);
                         break;
                 }
-                let chartStartUTC = moment(chartStartEST).utc()
-                let chartEndUTC = moment(chartEndEST).utc()
+                chartStartUTC = moment(chartStartEST).utc()
+                chartEndUTC = moment(chartEndEST).utc()
+            }
+            catch (err) {
+                console.error(err)
+                setError("Unable to load current price information. Try again later")
+                }
 
-                let activeHoldings = [];
+            let activeHoldings = [];
+            let stockDataRefresh = []
+            try {
                 props.holdings.forEach(holding => {
                     let lastTransactionUTC = moment.utc(holding.LastTransactionDate)
                     if (holding.Shares !== 0 || (lastTransactionUTC.isBetween(chartStartUTC, chartEndUTC)) === true) {
@@ -108,23 +116,32 @@ export default function PortfolioChart(props) {
                     }
                 })
 
-                let stockDataRefresh = []
                 switch (chartDateRange) {
                     case "D":
                         stockDataRefresh = await refreshIntradayPriceHistory(currentUser, activeHoldings)
                         interval = "Intraday"
                         break;
-                    case "W" || "M":
+                    case "W":
+                    case "M":
                         stockDataRefresh = await refreshDailyPriceHistory(currentUser, activeHoldings)
                         interval = "Daily"
                         break;
-                    case "YTD" || "Y" || "5Y":
+                    case "YTD":
+                    case "Y":
+                    case "5Y":
                         stockDataRefresh = await refreshMonthlyPriceHistory(currentUser, activeHoldings)
                         interval = "Monthly"
                         break;
                 }
+            } catch (err) {
+                console.error(err)
+                setError("Unable to update stock price data. Try again later")
+            }
+            console.log(stockDataRefresh)
 
+            try {
                 const transactions = await getTransactionsByDate(currentUser, chartStartUTC.format(), chartEndUTC.format())
+                    console.log(transactions)
                 if (transactions.Status === "success" && transactions.Data.length !== 0) {
                     let newEntries = [];
                     transactions.Data.map(async (transaction) => {
@@ -139,6 +156,9 @@ export default function PortfolioChart(props) {
                         let timeBlockET = moment(timeBlockUTC)
                             .tz("America/New_York")
                             .format("YYYY-MM-DD HH:mm:ss")
+                        let dateBlockET = moment(timeBlockUTC)
+                            .tz("America/New_York")
+                            .format("YYYY-MM-DD")
                         const newEntry = {
                             transaction_id: transaction.Id,
                             ticker: transaction.Ticker,
@@ -146,7 +166,8 @@ export default function PortfolioChart(props) {
                             market_value: transaction.MarketValue,
                             transaction_type: transaction.TransactionType,
                             transaction_date: transDate.toDate(),
-                            ticker_time_block: transaction.Ticker + "-" + timeBlockET
+                            ticker_time_block: transaction.Ticker + "-" + timeBlockET,
+                            ticker_date_block: transaction.Ticker + "-" + dateBlockET + " 00:00:00"
                         };
                         newEntries.push(newEntry)
                     })
@@ -156,9 +177,20 @@ export default function PortfolioChart(props) {
                         upsert: true
                     });
                 }
+            } catch (err) {
+                console.error(err)
+                setError("Unable to retrieve your transaction history. Try again later")
+            }
 
+            try {
+                let tableJoin = ""
+                console.log(interval)
+                interval === "Intraday" ?
+                tableJoin = "StockDataPriceHistory-v1.ticker_time_block=TransactionHistory-v1.ticker_time_block" :
+                tableJoin = "StockDataPriceHistory-v1.ticker_time_block=TransactionHistory-v1.ticker_date_block"
+                console.log(tableJoin)
                 if (stockDataRefresh.Status === "Success") {
-                    const data = await dataCache.select({
+                    const localData = await dataCache.select({
                         from: "StockDataPriceHistory-v1",
                         order: {
                             by: "StockDataPriceHistory-v1.time_block",
@@ -166,9 +198,9 @@ export default function PortfolioChart(props) {
                         },
                         where: {
                             ticker: {
-                                in: (activeHoldings.map(holding => holding.ticker)),
-                                interval: interval,
+                                in: (activeHoldings.map(holding => holding.ticker))
                             },
+                            interval: interval,
                             time_block: {
                                 "-": {
                                     low: chartStartEST.toDate(),
@@ -181,7 +213,7 @@ export default function PortfolioChart(props) {
                         },
                         join: {
                             with: "TransactionHistory-v1",
-                            on: "StockDataPriceHistory-v1.ticker_time_block=TransactionHistory-v1.ticker_time_block",
+                            on: tableJoin,
                             type: "left",
                             as: {
                                 ticker: "trans_ticker",
@@ -189,9 +221,9 @@ export default function PortfolioChart(props) {
                             }
                         }
                     })
-
-                    let uniqueTickers = data.reduce((group, item) => {
-                        let { ticker } = item;
+                    console.log(localData)
+                    let uniqueTickers = localData.reduce((group, item) => {
+                        let {ticker} = item;
                         if (!group[ticker]) {
                             group[ticker] = []
                         }
@@ -204,7 +236,7 @@ export default function PortfolioChart(props) {
                             close: item.close,
                             time_block: item.time_block,
                             date_time_block_string: item.date_time_block_string,
-                            time_string: item.time_string,
+                            chart_group: item.chart_group,
                             traded_shares: item.traded_shares,
                         });
                         return group;
@@ -233,11 +265,12 @@ export default function PortfolioChart(props) {
                     })
 
                     let chartRows = []
+                    console.log(uniqueTickers)
                     Object.keys(uniqueTickers).forEach(t => {
                         uniqueTickers[t].forEach(i => {
-                            let existingEntry = chartRows.find(a => a[0] === i.time_string)
+                            let existingEntry = chartRows.find(a => a[0] === i.chart_group)
                             if (!existingEntry) {
-                                chartRows.push([i.time_string, i.open, i.high, i.low])
+                                chartRows.push([i.chart_group, i.open, i.high, i.low])
                             }
                             else {
                                 if (existingEntry[1] !== null || i.open !== null) {
@@ -252,7 +285,7 @@ export default function PortfolioChart(props) {
                             }
                         })
                     })
-
+                    console.log(chartRows)
                     let lastNonNullEntry = ((chartRows.slice().find(e => !e.includes(null)))[1])
                     chartRows.reverse();
                     setOpeningBalance(chartRows[0][1])
@@ -290,19 +323,18 @@ export default function PortfolioChart(props) {
             <Alert variant="primary" className="text-center">Getting your chart data...</Alert>
         </div>
     );
-    if (error) return (
-        <div className="container-fluid w-50 p-3 justify-content-center">
-            <Alert variant="danger" className="text-center">{error}</Alert>
-        </div>
-    )
 
     return (
         <>
             <h3 className="m-2">{formatCurrency(currentBalance)}</h3>
             <h5 className="m-2">{percentChange}</h5>
-            <Chart chartType="AreaChart" width="100%" height="500px" data={chartData} options={chartOptions}>
-            </Chart>
-            <div className="d-block justify-content-center">
+            {error ?
+                <div className="container-fluid w-50 p-3 justify-content-center">
+                <Alert variant="danger" className="text-center">{error}</Alert>
+                </div> :
+                <Chart chartType="AreaChart" width="100%" height="500px" data={chartData} options={chartOptions}>
+                </Chart>}
+    <div className="d-block justify-content-center">
                 <ButtonToolbar className="my-2">
                     <ButtonGroup onClick={handleChartDateRangeChange} className="mx-auto" aria-label="Date range group">
                         <Button variant={chartDateRange === "D" ? "success" : "secondary"} value="D">D</Button>
@@ -310,7 +342,7 @@ export default function PortfolioChart(props) {
                         <Button variant={chartDateRange === "M" ? "success" : "secondary"} value="M">M</Button>
                         <Button variant={chartDateRange === "YTD" ? "success" : "secondary"} value="YTD">YTD</Button>
                         <Button variant={chartDateRange === "Y" ? "success" : "secondary"} value="Y">Y</Button>
-                        <Button variant={chartDateRange === "5Y" ? "success" : "secondary"} value="All">All</Button>
+                        <Button variant={chartDateRange === "5Y" ? "success" : "secondary"} value="5Y">5Y</Button>
                     </ButtonGroup>
                 </ButtonToolbar>
                 {chartDateRange === "D" ? <Form.Switch label="Extended hours" onChange={handleHoursToggle} checked={extendedHoursToggle} /> : null}

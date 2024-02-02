@@ -5,7 +5,7 @@ import Header from './Components/Header';
 import Navigation from './Components/Navigation';
 import Home from './Pages/Home';
 import MyPortfolio from './Pages/MyPortfolio'
-import Reports from './Pages/Reports';
+import Research from './Pages/Research';
 import MyAccount from './Pages/MyAccount';
 import PrivateRoute from "./Components/PrivateRoute"
 
@@ -23,8 +23,8 @@ export default function App() {
                         <Route path="/MyPortfolio" element={<PrivateRoute/>}>
                             <Route path="/MyPortfolio" element={<MyPortfolio/> }/>
                         </Route>
-                        <Route path="/Reports" element={<PrivateRoute/>}>
-                            <Route path="/Reports" element={<Reports/>} />
+                        <Route path="/Research" element={<PrivateRoute/>}>
+                            <Route path="/Research" element={<Research/>} />
                         </Route>
                         <Route path="/MyAccount" element={<PrivateRoute/>}>
                             <Route path="/MyAccount" element={<MyAccount/>} />

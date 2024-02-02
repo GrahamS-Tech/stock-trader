@@ -1,6 +1,5 @@
 import React from 'react';
 import { ButtonToolbar, ButtonGroup, Button, Table } from 'react-bootstrap';
-import monitor from "./Assets/Images/stock-chart.jpg";
 
 //View my current holdings
 //Search for new stocks
@@ -11,7 +10,6 @@ export default function MyPortfolio() {
             <h3 className="m-2">$10,857.39</h3>
             <h5 className="m-2">+10% Today</h5>
             <div className="d-block justify-content-center">
-                <img className="img-fluid" src={monitor} alt="chart placeholder"></img>
                 <ButtonToolbar className="my-2">
                     <ButtonGroup className="mx-auto" aria-label="Date range group">
                         <Button variant="secondary">d</Button>

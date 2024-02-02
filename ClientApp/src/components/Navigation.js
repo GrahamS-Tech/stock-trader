@@ -18,7 +18,7 @@ export default function Navigation() {
                 {currentUser && <Nav className="container-fluid w-50 justify-content-center">
                     <Nav.Link as={Link} to="/">Home</Nav.Link>
                     <Nav.Link as={Link} to="/MyPortfolio">My Portfolio</Nav.Link>
-                    <Nav.Link as={Link} to="/Reports">Reports</Nav.Link>
+                    <Nav.Link as={Link} to="/Research">Research</Nav.Link>
                     <Nav.Link as={Link} to="/MyAccount">My Account</Nav.Link>
                     <Nav.Link as={Link} onClick={logout} to="/" >Log out</Nav.Link>
                 </Nav>}
