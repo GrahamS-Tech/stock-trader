@@ -22,7 +22,7 @@ export default function BankingDetails() {
     let transferAccountRef = useRef();
     let transferAmountRef = useRef();
 
-    const loadAccounts = useCallback(async() => { 
+    const loadAccounts = useCallback(async() => {
         setError("")
         setLoading(true)
         getAllAccounts(currentUser)
@@ -149,7 +149,7 @@ export default function BankingDetails() {
         } catch (err) {
             console.error(err)
             setError("Unable to complete transaction")
-        } 
+        }
     }
 
     function handleDepositWithdrawChange(e) {
@@ -190,7 +190,7 @@ export default function BankingDetails() {
             <br></br>
             {success && <Alert variant="success" className="text-center">{success}</Alert>}
             {error && <Alert variant="danger" className="text-center">{error}</Alert>}
-            <h3>Banking Detials</h3>
+            <h3>Banking Details</h3>
             <Table className="m-3">
                 <thead>
                     <tr>

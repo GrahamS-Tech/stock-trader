@@ -395,3 +395,101 @@ export async function refreshMonthlyPriceHistory(currentUser, requestedTickers) 
     return result
 
 }
+
+export async function refreshTopMovers(currentUser) {
+    let result = []
+    try {
+        const response = await fetch(
+            "https://stock-trader-api.azurewebsites.net/api/StockData/TopMovers/",
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + currentUser
+                }
+            });
+        result = await response.json();
+    } catch (err) {
+        console.error("Error in stock API call")
+        console.error(err)
+        result.Status = "error"
+    }
+
+    if (result.Status === "success") {
+        return result
+    }
+}
+
+export async function refreshMarketNews(currentUser) {
+    let result = []
+    try {
+        const response = await fetch(
+            "https://stock-trader-api.azurewebsites.net/api/StockData/MarketNews/",
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + currentUser
+                }
+            });
+        result = await response.json();
+    } catch (err) {
+        console.error("Error in stock API call")
+        console.error(err)
+        result.Status = "error"
+    }
+
+    if (result.Status === "success") {
+        return result
+    }
+}
+
+export async function refreshNewsByTicker(currentUser, requestedTicker) {
+    let result = []
+    try {
+        const response = await fetch(
+            "https://stock-trader-api.azurewebsites.net/api/StockData/NewsByTicker/" +
+            requestedTicker,
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + currentUser
+                }
+            });
+        result = await response.json();
+    } catch (err) {
+        console.error("Error in stock API call")
+        console.error(err)
+        result.Status = "error"
+    }
+
+    if (result.Status === "success") {
+        return result
+    }
+}
+
+export async function refreshNewsByTopic(currentUser, requestedTopic) {
+    let result = []
+    try {
+        const response = await fetch(
+            "https://stock-trader-api.azurewebsites.net/api/StockData/NewsByTopic/" +
+            requestedTopic,
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + currentUser
+                }
+            });
+        result = await response.json();
+    } catch (err) {
+        console.error("Error in stock API call")
+        console.error(err)
+        result.Status = "error"
+    }
+
+    if (result.Status === "success") {
+        return result
+    }
+}
