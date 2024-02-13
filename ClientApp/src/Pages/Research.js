@@ -7,8 +7,8 @@ export default function Research() {
     return (
         <div className="container-fluid w-50 justify-content-center">
             <PortfolioChart></PortfolioChart>
-            <TopMovers></TopMovers>
             <NewStories></NewStories>
+            <TopMovers></TopMovers>
         </div>
     );
 }

@@ -12,7 +12,7 @@ export default function PortfolioTable(props) {
     function handleCloseTradeModal() {
         setShowTradeModal(false);
         props.loadHoldings();
-    } 
+    }
 
     function handleShowTradeModal(e) {
         setSharesToTrade(e.target.attributes.ticker.value)
@@ -47,7 +47,7 @@ export default function PortfolioTable(props) {
                             <td className="text-center" colSpan={6}>No items in your portfolio</td>
                         </tr>}
                     {props.holdings && props.holdings.map((items) => (
-                        items.Shares !== 0 ? ( 
+                        items.Shares !== 0 ? (
                         <tr key={items.Id}>
                             <td>{items.Ticker}</td>
                             <td>{items.Name}</td>
@@ -58,9 +58,6 @@ export default function PortfolioTable(props) {
                         </tr>
                             ) : null
                     ))}
-                    {/*<tr>*/}
-                    {/*    <td className="text-center" colSpan={6}><Button variant="success">Buy</Button></td>*/}
-                    {/*</tr>*/}
                 </tbody>
             </Table>
             <TradeSharesModal currentUser={currentUser} selectedName={shareName} selectedTicker={sharesToTrade} isModalOpen={showTradeModal} openTradeModal={handleShowTradeModal} closeTradeModal={handleCloseTradeModal}></TradeSharesModal>
