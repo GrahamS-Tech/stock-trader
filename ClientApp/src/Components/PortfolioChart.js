@@ -137,11 +137,9 @@ export default function PortfolioChart(props) {
                 console.error(err)
                 setError("Unable to update stock price data. Try again later")
             }
-            console.log(stockDataRefresh)
 
             try {
                 const transactions = await getTransactionsByDate(currentUser, chartStartUTC.format(), chartEndUTC.format())
-                    console.log(transactions)
                 if (transactions.Status === "success" && transactions.Data.length !== 0) {
                     let newEntries = [];
                     transactions.Data.map(async (transaction) => {
@@ -184,11 +182,9 @@ export default function PortfolioChart(props) {
 
             try {
                 let tableJoin = ""
-                console.log(interval)
                 interval === "Intraday" ?
                 tableJoin = "StockDataPriceHistory-v1.ticker_time_block=TransactionHistory-v1.ticker_time_block" :
                 tableJoin = "StockDataPriceHistory-v1.ticker_time_block=TransactionHistory-v1.ticker_date_block"
-                console.log(tableJoin)
                 if (stockDataRefresh.Status === "Success") {
                     const localData = await dataCache.select({
                         from: "StockDataPriceHistory-v1",
@@ -221,7 +217,6 @@ export default function PortfolioChart(props) {
                             }
                         }
                     })
-                    console.log(localData)
                     let uniqueTickers = localData.reduce((group, item) => {
                         let {ticker} = item;
                         if (!group[ticker]) {
@@ -265,7 +260,6 @@ export default function PortfolioChart(props) {
                     })
 
                     let chartRows = []
-                    console.log(uniqueTickers)
                     Object.keys(uniqueTickers).forEach(t => {
                         uniqueTickers[t].forEach(i => {
                             let existingEntry = chartRows.find(a => a[0] === i.chart_group)
@@ -285,7 +279,6 @@ export default function PortfolioChart(props) {
                             }
                         })
                     })
-                    console.log(chartRows)
                     let lastNonNullEntry = ((chartRows.slice().find(e => !e.includes(null)))[1])
                     chartRows.reverse();
                     setOpeningBalance(chartRows[0][1])

@@ -137,9 +137,71 @@ function getDbSchema() {
         }
     }
 
+    const tblNewsStories = {
+        name: "NewsStories-v1",
+        columns: {
+            search_parameter: {
+                //Valid values: "market", [ticker symbol], [topic]
+                dataType: "string"
+            },
+            search_timestamp: {
+                dataType: "date_time"
+            },
+            expiration: {
+                dataType: "date_time"
+            },
+            source: {
+                dataType: "string"
+            },
+            source_domain: {
+                dataType: "string"
+            },
+            summary: {
+                dataType: "string"
+            },
+            title: {
+                dataType: "string"
+            },
+            url: {
+                dataType: "string"
+            }
+        }
+    }
+
+    const tblTopMovers = {
+        name: "TopMovers-v1",
+        columns: {
+            mover_category: {
+                //Valid categories: "gainer", "loser", "mover"
+                dataType: "string"
+            },
+            last_updated: {
+              dataType: "date_time"
+            },
+            expiration: {
+              dataType: "date_time"
+            },
+            ticker: {
+                dataType: "string"
+            },
+            price: {
+                dataType: "number"
+            },
+            change_amount: {
+                dataType: "number"
+            },
+            change_percentage: {
+                dataType: "number"
+            },
+            volume: {
+                dataType: "number"
+            }
+        }
+    }
+
     const db = {
         name: "StockDataCache",
-        tables: [tblPrice, tblTransactionHistory, tblStockDataHistory]
+        tables: [tblPrice, tblTransactionHistory, tblStockDataHistory, tblNewsStories, tblTopMovers]
     }
 
     return db;

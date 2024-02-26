@@ -1,9 +1,6 @@
 import React from 'react';
 import { ButtonToolbar, ButtonGroup, Button, Table } from 'react-bootstrap';
 
-//View my current holdings
-//Search for new stocks
-
 export default function MyPortfolio() {
     return (
         < div className="container-fluid w-50 justify-content-center">

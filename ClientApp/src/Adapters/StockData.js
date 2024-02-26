@@ -397,99 +397,182 @@ export async function refreshMonthlyPriceHistory(currentUser, requestedTickers) 
 }
 
 export async function refreshTopMovers(currentUser) {
+    const dataCache = await cache;
+    let currentEasternTime = moment.tz("America/New_York")
     let result = []
     try {
-        const response = await fetch(
-            "https://stock-trader-api.azurewebsites.net/api/StockData/TopMovers/",
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + currentUser
+
+        const localData = await dataCache.select({
+            from: "TopMovers-v1"
+        });
+
+        let refreshData = true;
+        let localDataKeys = Object.keys(localData);
+        if (localDataKeys.length !== 0) {
+            let dataExpiration = moment(localData[0]["expiration"]
+                .toString()).tz("America/New_York")
+            if (moment(dataExpiration).isBefore(currentEasternTime)) {
+                refreshData = false
+            }
+        }
+
+        if (refreshData) {
+            const response = await fetch(
+                "https://stock-trader-api.azurewebsites.net/api/StockData/TopMovers/",
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + currentUser
+                    }
+                });
+            result = await response.json();
+        }
+
+        if (result.Status === "success") {
+            let newMoversCacheData = []
+            let dataLastUpdated = moment(result.Data.last_updated).tz("America/New_York").format("YYYY-MM-DD HH:mm:ss")
+            let dataExpiration = moment(dataLastUpdated).add(15,"m").format("YYYY-MM-DD HH:mm:ss")
+
+
+            result.Data.top_gainers.slice(0,10).forEach(i => {
+                const newEntry = {
+                    mover_category: "Gainer",
+                    last_updated: moment(dataLastUpdated).toDate(),
+                    expiration: moment(dataExpiration).toDate(),
+                    ticker: i.ticker,
+                    price: parseFloat(i.price),
+                    change_amount: parseFloat(i.change_amount),
+                    change_percentage: parseFloat(i.change_percentage),
+                    volume: parseFloat(i.volume)
                 }
-            });
-        result = await response.json();
+                newMoversCacheData.push(newEntry)
+            })
+            result.Data.top_losers.slice(0,10).forEach(i => {
+                const newEntry = {
+                    mover_category: "Loser",
+                    last_updated: moment(dataLastUpdated).toDate(),
+                    expiration: moment(dataExpiration).toDate(),
+                    ticker: i.ticker,
+                    price: parseFloat(i.price),
+                    change_amount: parseFloat(i.change_amount),
+                    change_percentage: parseFloat(i.change_percentage),
+                    volume: parseFloat(i.volume)
+                }
+                newMoversCacheData.push(newEntry)
+            })
+            result.Data.most_actively_traded.slice(0,10).forEach(i => {
+                const newEntry = {
+                    mover_category: "Mover",
+                    last_updated: moment(dataLastUpdated).toDate(),
+                    expiration: moment(dataExpiration).toDate(),
+                    ticker: i.ticker,
+                    price: parseFloat(i.price),
+                    change_amount: parseFloat(i.change_amount),
+                    change_percentage: parseFloat(i.change_percentage),
+                    volume: parseFloat(i.volume)
+                }
+                newMoversCacheData.push(newEntry)
+            })
+
+            await dataCache.insert({
+                into: "TopMovers-v1",
+                values: newMoversCacheData
+            })
+
+            return newMoversCacheData
+        }
+        else {
+            return localData
+        }
     } catch (err) {
         console.error("Error in stock API call")
         console.error(err)
         result.Status = "error"
     }
 
-    if (result.Status === "success") {
-        return result
-    }
 }
 
-export async function refreshMarketNews(currentUser) {
+export async function refreshStockNews(currentUser, searchType, searchParameter) {
+    console.log(searchType + " " + searchParameter)
+    const dataCache = await cache;
     let result = []
+    let refreshData = true;
+    let currentEasternTime = moment.tz("America/New_York")
+    let newsApiUrl =""
+    switch(searchType) {
+        case "market":
+            newsApiUrl = "https://stock-trader-api.azurewebsites.net/api/StockData/MarketNews/"
+            break;
+        case "ticker":
+            newsApiUrl = "https://stock-trader-api.azurewebsites.net/api/StockData/NewsByTicker/" + searchParameter
+            break;
+        case "topic":
+            newsApiUrl = "https://stock-trader-api.azurewebsites.net/api/StockData/NewsByTopic/" + searchParameter
+            break;
+    }
+    console.log(newsApiUrl)
+
     try {
-        const response = await fetch(
-            "https://stock-trader-api.azurewebsites.net/api/StockData/MarketNews/",
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + currentUser
-                }
-            });
-        result = await response.json();
+        const localData = await dataCache.select({
+            from: "NewsStories-v1",
+            where: {
+                search_parameter: searchParameter
+            }
+        });
+
+        let localDataKeys = Object.keys(localData);
+        if (localDataKeys.length !== 0) {
+            let dataExpiration = moment(localData[0]["expiration"]
+                .toString()).tz("America/New_York")
+            if (moment(dataExpiration).isBefore(currentEasternTime)) {
+                refreshData = false
+            }
+        }
+
+        if (refreshData) {
+            const response = await fetch(
+                newsApiUrl,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + currentUser
+                    }
+                });
+            result = await response.json();
+            if (result.Status === "success") {
+                let newNewsData = []
+                let dataLastUpdated = moment(result.Data.last_updated).tz("America/New_York")
+                let dataExpiration = moment(dataLastUpdated).add(15,"m")
+
+                result.Data.feed.slice(0,10).forEach(i => {
+                    const newEntry = {
+                        search_parameter: searchParameter,
+                        search_timestamp: dataLastUpdated.toDate(),
+                        expiration: dataExpiration.toDate(),
+                        source: i.source,
+                        source_domain: i.source_domain,
+                        summary: i.summary,
+                        title: i.title,
+                        url: i.url
+                    }
+                    newNewsData.push(newEntry)
+                })
+                await dataCache.insert({
+                    into: "NewsStories-v1",
+                    values: newNewsData
+                })
+                return newNewsData
+            }
+            else {
+                throw "Could not refresh data. Try again later"
+            }
+        }
+        else return localData
     } catch (err) {
         console.error("Error in stock API call")
         console.error(err)
         result.Status = "error"
-    }
-
-    if (result.Status === "success") {
-        return result
-    }
-}
-
-export async function refreshNewsByTicker(currentUser, requestedTicker) {
-    let result = []
-    try {
-        const response = await fetch(
-            "https://stock-trader-api.azurewebsites.net/api/StockData/NewsByTicker/" +
-            requestedTicker,
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + currentUser
-                }
-            });
-        result = await response.json();
-    } catch (err) {
-        console.error("Error in stock API call")
-        console.error(err)
-        result.Status = "error"
-    }
-
-    if (result.Status === "success") {
-        return result
-    }
-}
-
-export async function refreshNewsByTopic(currentUser, requestedTopic) {
-    let result = []
-    try {
-        const response = await fetch(
-            "https://stock-trader-api.azurewebsites.net/api/StockData/NewsByTopic/" +
-            requestedTopic,
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + currentUser
-                }
-            });
-        result = await response.json();
-    } catch (err) {
-        console.error("Error in stock API call")
-        console.error(err)
-        result.Status = "error"
-    }
-
-    if (result.Status === "success") {
-        return result
     }
 }
