@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import PortfolioChart from '../Components/PortfolioChart';
+import StockChart from '../Components/Chart';
 import PortfolioTable from '../Components/PortfolioTable';
 import WatchListTable from '../Components/WatchListTable';
 import { useAuth } from "../Components/AuthContext";
@@ -10,10 +10,12 @@ import { getCurrenPrice } from "../Adapters/StockData";
 export default function MyPortfolio() {
     const { currentUser } = useAuth();
     const [holdings, setHoldings] = useState([]);
+    const [tickers, setTickers] = useState([])
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
 
     const loadHoldings = useCallback(async() => {
+        const tickerList = []
         setError("")
         setLoading(true)
         try {
@@ -27,12 +29,14 @@ export default function MyPortfolio() {
                         const value = currentPrice * i.Shares;
                         const formattedValue = formatCurrency(value)
                         Object.assign(i, { Value: formattedValue })
+                        tickerList.push(i.Ticker)
                     }));
                 } catch (err) {
                     console.error(err)
                     setError("Unable to load price data")
                 } finally {
                     setHoldings(response.Data)
+                    setTickers(tickerList)
                 }
             }
             else {
@@ -53,7 +57,7 @@ export default function MyPortfolio() {
 
     return (
         < div className="container-fluid w-50 justify-content-center">
-            <PortfolioChart holdings={holdings} loading={loading}></PortfolioChart>
+            <StockChart tickers={tickers} loading={loading} showUserBalance={true} holdings={holdings}></StockChart>
             <hr></hr>
             <PortfolioTable holdings={holdings} error={error} loading={loading} loadHoldings={loadHoldings}></PortfolioTable>
             <hr></hr>

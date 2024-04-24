@@ -1,5 +1,5 @@
 import React from 'react';
-import PortfolioChart from "../Components/PortfolioChart";
+import Chart from "../Components/Chart";
 import TopMovers from "../Components/TopMovers";
 import NewStories from "../Components/NewsStories";
 

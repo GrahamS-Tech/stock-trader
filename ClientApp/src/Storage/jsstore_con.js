@@ -5,6 +5,7 @@ async function initDb() {
     const connection = new JsStore.Connection();
     connection.addPlugin(workerInjector);
     await connection.initDb(getDbSchema());
+    //Add code to delete expired data here (I think)
     return connection
 }
 
@@ -57,51 +58,23 @@ function getDbSchema() {
     const tblStockDataHistory = {
         name: "StockDataPriceHistory-v1",
         columns: {
-            ticker_time_block: {
-                primaryKey: true,
-                dataType: "string"
-            },
-            date_time_block_string: {
-                dataType: "string"
-            },
-            chart_group: {
-                dataType: "string"
-            },
             interval: {
               dataType: "string"
+            },
+            data_as_of: {
+              dataType: "date_time"
+            },
+            data: {
+                dataType: "object"
             },
             ticker: {
                 dataType: "string"
             },
-            open: {
-                dataType: "number"
-            },
-            high: {
-                dataType: "number"
-            },
-            low: {
-                dataType: "number"
-            },
-            close: {
-                dataType: "number"
-            },
-            volume: {
-                dataType: "number"
-            },
-            time_block: {
+            last_refresh: {
                 dataType: "date_time"
             },
-            data_pulled: {
+            expiration: {
                 dataType: "date_time"
-            },
-            data_expiration: {
-                dataType: "date_time"
-            },
-            data_source: {
-                dataType: "string"
-            },
-            current_holdings: {
-                dataType: "number"
             }
         }
     }

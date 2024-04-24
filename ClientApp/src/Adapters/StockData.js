@@ -77,6 +77,83 @@ export async function getCurrenPrice(currentUser, requestedTicker) {
     return result.Data
 }
 
+export async function getPriceHistory(currentUser, tickers, interval) {
+    //'tickers' must be an array. interval can only be "intraday", "daily", or "monthly"
+
+    //Select data for all tickers that is not expired
+    const dataCache = await cache;
+    const currentEasternTime = moment.tz("America/New_York")
+    const localData = await dataCache.select({
+        from: "StockDataPriceHistory-v1",
+        where: {
+            interval: interval,
+            expiration: { ">" : currentEasternTime.toDate() }
+        }
+    })
+    //Get list of tickers not returned
+    let tickersToRefresh = []
+    if (localData.length > 0) {
+        tickersToRefresh = tickers.filter(e => !localData.some(o => o.ticker === e))
+    } else {
+        tickersToRefresh = tickers
+    }
+    //Call API for missing data
+    let apiUrl = ""
+    let apiDataName = ""
+    switch(interval) {
+        case "intraday" :
+            apiUrl = "https://stock-trader-api.azurewebsites.net/api/StockData/IntradayPriceHistory/"
+            apiDataName = "Time Series (15min)"
+            break;
+        case "daily":
+            apiUrl = "https://stock-trader-api.azurewebsites.net/api/StockData/DailyPriceHistory/"
+            apiDataName = "Time Series (Daily)"
+            break;
+        case "monthly":
+            apiUrl = "https://stock-trader-api.azurewebsites.net/api/StockData/MonthlyPriceHistory/"
+            apiDataName = "Monthly Time Series"
+            break;
+    }
+
+    if (tickersToRefresh.length > 0) {
+        for (const ticker of tickersToRefresh) {
+            try {
+                const response = await fetch(
+                    apiUrl + ticker, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + currentUser
+                        }
+                    });
+                const result = await response.json()
+                //Create array for new data to bew added to cache
+                const lastRefreshed = moment(result.Data["Meta Data"]["3. Last Refreshed"]).tz("America/New_York").toDate()
+                let newDataEntries = []
+                const newDataEntry = {
+                    interval: interval,
+                    data_as_of: lastRefreshed,
+                    ticker: ticker,
+                    data: result.Data[apiDataName],
+                    last_refresh: currentEasternTime.toDate(),
+                    expiration: currentEasternTime.clone().add(15, "minutes").toDate()
+                }
+                newDataEntries.push(newDataEntry)
+                //Save new array to cache
+                await dataCache.insert({
+                    into: "StockDataPriceHistory-v1",
+                    values: newDataEntries
+                })
+                //Merge array with original data returned
+                localData.push(newDataEntries)
+            } catch (err) {
+                console.error(err)
+            }
+        }
+    }
+    //Return merged array to requesting component
+    return localData
+}
 function marketStatusCheck(dateTimeMoment) {
     const extendedHoursOpen = moment.tz("04:00:00", "HH:mm:ss","America/New_York");
     const extendedHoursClose = moment.tz("20:00:00", "HH:mm:ss", "America/New_York");
@@ -393,7 +470,6 @@ export async function refreshMonthlyPriceHistory(currentUser, requestedTickers) 
     result.Status = "Success"
     result.Message = "All entries refreshed"
     return result
-
 }
 
 export async function refreshTopMovers(currentUser) {
@@ -490,11 +566,9 @@ export async function refreshTopMovers(currentUser) {
         console.error(err)
         result.Status = "error"
     }
-
 }
 
 export async function refreshStockNews(currentUser, searchType, searchParameter) {
-    console.log(searchType + " " + searchParameter)
     const dataCache = await cache;
     let result = []
     let refreshData = true;
@@ -511,7 +585,6 @@ export async function refreshStockNews(currentUser, searchType, searchParameter)
             newsApiUrl = "https://stock-trader-api.azurewebsites.net/api/StockData/NewsByTopic/" + searchParameter
             break;
     }
-    console.log(newsApiUrl)
 
     try {
         const localData = await dataCache.select({
